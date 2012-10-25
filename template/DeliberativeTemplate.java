@@ -29,8 +29,8 @@ public class DeliberativeTemplate implements DeliberativeBehavior {
 	Agent agent;
 	int capacity;
 
-	ArrayList<City> startState= new ArrayList<City>();
-	ArrayList<City> goalState= new ArrayList<City>();
+	ArrayList<ArrayList<Object>> startState= new ArrayList<ArrayList<Object>>();
+	ArrayList<ArrayList<Object>> goalState= new ArrayList<ArrayList<Object>>();
 	/* the planning class */
 	Algorithm algorithm;
 	
@@ -57,10 +57,16 @@ public class DeliberativeTemplate implements DeliberativeBehavior {
 		
 		Iterator<Task> itr = tasks.iterator();
 		
-		while(itr.hasNext()){
+		while(itr.hasNext()){			
+			startState.add(new ArrayList<Object>());
+			goalState.add(new ArrayList<Object>());
+
 			Task currentTask = itr.next();
-			startState.set(currentTask.id, currentTask.pickupCity);
-			goalState.set(currentTask.id, currentTask.deliveryCity);
+			startState.get(startState.size()-1).add(currentTask);
+			startState.get(startState.size()-1).add(currentTask.pickupCity);
+
+			goalState.get(goalState.size()-1).add(currentTask);
+			goalState.get(goalState.size()-1).add(currentTask.deliveryCity);
 		}
 		
 		// Compute the plan with the selected algorithm.
