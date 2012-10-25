@@ -1,6 +1,9 @@
 package template;
 
 /* import table */
+import java.util.ArrayList;
+import java.util.Iterator;
+
 import logist.simulation.Vehicle;
 import logist.agent.Agent;
 import logist.behavior.DeliberativeBehavior;
@@ -14,7 +17,6 @@ import logist.topology.Topology.City;
 /**
  * An optimal planner for one vehicle.
  */
-@SuppressWarnings("unused")
 public class DeliberativeTemplate implements DeliberativeBehavior {
 
 	enum Algorithm { BFS, ASTAR }
@@ -27,6 +29,8 @@ public class DeliberativeTemplate implements DeliberativeBehavior {
 	Agent agent;
 	int capacity;
 
+	ArrayList<City> startState= new ArrayList<City>();
+	ArrayList<City> goalState= new ArrayList<City>();
 	/* the planning class */
 	Algorithm algorithm;
 	
@@ -35,7 +39,7 @@ public class DeliberativeTemplate implements DeliberativeBehavior {
 		this.topology = topology;
 		this.td = td;
 		this.agent = agent;
-		
+
 		// initialize the planner
 		int capacity = agent.vehicles().get(0).capacity();
 		String algorithmName = agent.readProperty("algorithm", String.class, "ASTAR");
@@ -49,7 +53,16 @@ public class DeliberativeTemplate implements DeliberativeBehavior {
 	@Override
 	public Plan plan(Vehicle vehicle, TaskSet tasks) {
 		Plan plan;
-
+		
+		
+		Iterator<Task> itr = tasks.iterator();
+		
+		while(itr.hasNext()){
+			Task currentTask = itr.next();
+			startState.set(currentTask.id, currentTask.pickupCity);
+			goalState.set(currentTask.id, currentTask.deliveryCity);
+		}
+		
 		// Compute the plan with the selected algorithm.
 		switch (algorithm) {
 		case ASTAR:
