@@ -28,6 +28,10 @@ public class DeliberativeTemplate implements DeliberativeBehavior {
 	/* the properties of the agent */
 	Agent agent;
 	int capacity;
+	
+	private static final int INITSTATE = 0;
+	private static final int PICKEDUP = 1;
+	private static final int DELIVERED = 2;
 
 	ArrayList<ArrayList<Object>> startState= new ArrayList<ArrayList<Object>>();
 	ArrayList<ArrayList<Object>> goalState= new ArrayList<ArrayList<Object>>();
@@ -63,10 +67,10 @@ public class DeliberativeTemplate implements DeliberativeBehavior {
 
 			Task currentTask = itr.next();
 			startState.get(startState.size()-1).add(currentTask);
-			startState.get(startState.size()-1).add(currentTask.pickupCity);
+			startState.get(startState.size()-1).add(INITSTATE);
 
 			goalState.get(goalState.size()-1).add(currentTask);
-			goalState.get(goalState.size()-1).add(currentTask.deliveryCity);
+			goalState.get(goalState.size()-1).add(DELIVERED);
 		}
 		
 		// Compute the plan with the selected algorithm.
