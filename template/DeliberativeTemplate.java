@@ -64,6 +64,8 @@ public class DeliberativeTemplate implements DeliberativeBehavior {
 		
 		Iterator<Task> itr = tasks.iterator();
 		
+		System.out.println("Number of tasks: "+tasks.size());
+		
 		while(itr.hasNext()){			
 			startState.add(new ArrayList<Object>());
 			goalState.add(new ArrayList<Object>());
@@ -82,20 +84,23 @@ public class DeliberativeTemplate implements DeliberativeBehavior {
 		case ASTAR:
 			System.out.println("Debug Astar");
 			Comparator<planNode> comparator = new planNodeComparator();
-			PriorityQueue<planNode> nodeQueue = new PriorityQueue<planNode> (10, comparator);
+			PriorityQueue<planNode> nodeQueue = new PriorityQueue<planNode> (1000, comparator);
 			ArrayList<ArrayList<Object>> currentState = startState;
 			ArrayList<planNode> visitedNodes = new ArrayList<planNode>();
 			planNode currentNode = startNode;
 			int i = 0;
-			while(!checkGoalState(currentState) && i < 3) {
-				System.out.println("Expand new node");
+			while(!checkGoalState(currentState)) {
+				System.out.println("--------");
 				ArrayList<planNode> childQueue = currentNode.expandNodes();
 				nodeQueue.addAll(childQueue);
 				currentNode = nodeQueue.remove();
 				System.out.println("best node cost: "+currentNode.getCosts());
+				System.out.println("best node city: "+currentNode.getCity());
+				//currentNode.printState();
 				visitedNodes.add(currentNode);
 				currentState = currentNode.getState();
 				i++;
+				System.out.println("Node created: "+i);
 			}
 			System.out.println("Arrived at goal node");
 			planNode goalNode = currentNode;

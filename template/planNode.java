@@ -39,6 +39,14 @@ public class planNode {
 		return costs;
 	}
 	
+	public String getCity() {
+		return nodeCity.toString();
+	}
+	
+	public void printState() {
+		System.out.println(nodeState);
+	}
+	
 	public ArrayList<ArrayList<Object>> getState() {
 		return nodeState;
 	}
@@ -47,40 +55,41 @@ public class planNode {
 	
 	public ArrayList<planNode> expandNodes()
 	{
-		System.out.println("------ new expansion ------");
-		System.out.println("actual node: "+nodeCity);
-		System.out.println("Costs; "+costs);
-		System.out.println("-----------Check nodestate!");
-		System.out.println(nodeState.get(0).get(1));
+//		System.out.println("------ new expansion ------");
+//		System.out.println("actual node: "+nodeCity);
+//		System.out.println("Costs; "+costs);
+//		System.out.println("-----------Check nodestate!");
+//		System.out.println(nodeState.get(0).get(1));
 		
 		ArrayList<planNode> childNodes = new ArrayList<planNode>();
 		ArrayList<Integer> subState = createSubState(nodeState);
 		
 		int nbrTasks = subState.size();
 		int nbrSubStates = (int) Math.pow(2,nbrTasks);
-		System.out.println("Number of tasks: "+nbrTasks);
+//		System.out.println("Number of tasks: "+nbrTasks);
 		
 		// Loop through all substates
 		for(int i = 0; i < nbrSubStates; i++) {
-			System.out.println("substate iteration");
 			int newCapacity = capacity;
 			// Loop through the task list and select the right ones
-			ArrayList<ArrayList<Object>> childNodeState = nodeState;
+			ArrayList<ArrayList<Object>> childNodeState = new ArrayList<ArrayList<Object>>(nodeState);
 			for(int j = 0; j < nbrTasks; j++) {
-				ArrayList<Object> taskStateObject = new ArrayList<Object>();
 				if(i % (int) Math.pow(2, j+1) < ((int) Math.pow(2, j+1) / 2)) {
-					Task currentTask = (Task) childNodeState.get(j).get(0);
-					Object taskState = childNodeState.get(j).get(1);
+					int pos = subState.get(j);
+					Task currentTask = (Task) childNodeState.get(pos).get(0);
+					Object taskState = childNodeState.get(pos).get(1);
+					
+					// Replace the element because of references in arraylist
+					ArrayList<Object> taskObject = new ArrayList<Object>();
 					if(checkCapacity(newCapacity, currentTask) && taskState.equals(INITSTATE)) {
 						newCapacity += currentTask.weight;
-						taskStateObject.add(currentTask);
-						taskStateObject.add(PICKEDUP);
-						childNodeState.set(j, taskStateObject);
-						System.out.println("pickup");
-						System.out.print("x |");
+						taskObject.add(currentTask);
+						taskObject.add(PICKEDUP);
+						childNodeState.set(pos, taskObject);
+//						System.out.println("pickup");
 					} else {
 						childNodeState = null;
-						System.out.println("move");
+//						System.out.println("move");
 						break;
 					}
 				}
@@ -91,9 +100,6 @@ public class planNode {
 				childNodes.addAll(newChildren);
 			}
 		}
-		
-		System.out.println("-----------Check nodestate!");
-		System.out.println(nodeState.get(0).get(1));
 		
 		return childNodes;
 	}
@@ -131,13 +137,9 @@ public class planNode {
 		Iterator<City> iterator = neighbours.iterator();
 		
 		while(iterator.hasNext()) {
-			System.out.println("Create node");
 			City neighbour = iterator.next();
-			System.out.println("to: "+neighbour);
 			// Calculate cost
-			System.out.println("Distance to "+nodeCity+": "+neighbour.distanceTo(nodeCity)+" costs per km: "+vehicle.costPerKm()+" makes "+(neighbour.distanceTo(nodeCity) * vehicle.costPerKm()));
 			double newCost = costs + (neighbour.distanceTo(nodeCity) * vehicle.costPerKm());
-			System.out.println("New costs: "+newCost);
 			// create new child node
 			planNode child = new planNode(vehicle, neighbour, newState, newCapacity, newCost, this);
 			children.add(child);
@@ -151,12 +153,12 @@ public class planNode {
 	}
 	
 	private ArrayList<ArrayList<Object>> checkDelivery(ArrayList<ArrayList<Object>> currentState) {
-		System.out.println("---- Show status ------");
+//		System.out.println("---- Show status ------");
 		int size = currentState.size();
 		for(int i = 0; i < size; i++) {
 			Task task = (Task) currentState.get(i).get(0);
 			Object taskStatus = currentState.get(i).get(1);
-			System.out.println(taskStatus);
+
 			if(task.deliveryCity == nodeCity && taskStatus.equals(PICKEDUP)) {
 				currentState.get(i).set(1, DELIVERED);
 				System.out.println("Task delivered");
