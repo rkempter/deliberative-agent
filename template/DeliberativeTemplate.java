@@ -76,23 +76,26 @@ public class DeliberativeTemplate implements DeliberativeBehavior {
 			goalState.get(goalState.size()-1).add(DELIVERED);
 		}
 		
-		planNode startNode = null;
-		
+		planNode startNode = createStartNode(vehicle, startState);
 		// Compute the plan with the selected algorithm.
 		switch (algorithm) {
 		case ASTAR:
+			System.out.println("Debug Astar");
 			Comparator<planNode> comparator = new planNodeComparator();
 			PriorityQueue<planNode> nodeQueue = new PriorityQueue<planNode> (10, comparator);
 			ArrayList<ArrayList<Object>> currentState = startState;
+			ArrayList<planNode> visitedNodes = new ArrayList<planNode>();
 			planNode currentNode = null;
 			
-			while(checkGoalState(currentState)) {
-				ArrayList<planNode> childQueue = startNode.expandNodesAStar();
+			while(!checkGoalState(currentState)) {
+				System.out.println("Expand new node");
+				ArrayList<planNode> childQueue = startNode.expandNodes();
 				nodeQueue.addAll(childQueue);
 				currentNode = nodeQueue.remove();
+				visitedNodes.add(currentNode);
 				currentState = currentNode.getState();
 			}
-			
+			System.out.println("Arrived at goal node");
 			planNode goalNode = currentNode;
 			
 			// Do backtracking from goalnode and create plan
@@ -151,5 +154,10 @@ public class DeliberativeTemplate implements DeliberativeBehavior {
 		}
 		
 		return true;
+	}
+	
+	private planNode createStartNode(Vehicle vehicle, ArrayList<ArrayList<Object>> startState) {
+		planNode startNode = new planNode(vehicle, vehicle.getCurrentCity(), startState, 0, 0);
+		return startNode;
 	}
 }

@@ -11,10 +11,6 @@ import logist.simulation.Vehicle;
 import logist.task.Task;
 import logist.topology.Topology.City;
 
-
-
-
-
 public class planNode {
 	private planNode parent;
 	private ArrayList<ArrayList<Object>> nodeState;
@@ -29,17 +25,18 @@ public class planNode {
 	private static final int PICKEDUP = 1;
 	private static final int DELIVERED = 2;
 	
-	public planNode(Vehicle _vehicle, City _parentCity, ArrayList<ArrayList<Object>> _nodeState, int _capacity, int _costs)
+	public planNode(Vehicle _vehicle, City _parentCity, ArrayList<ArrayList<Object>> _nodeState, int _capacity, double _costs)
 	{
-		nodeState = _nodeState;
+		nodeState = checkDelivery(_nodeState);
+		vehicle = _vehicle;
 		totalCapacity = vehicle.capacity();
 		capacity = _capacity;
 		costs = _costs;
-		vehicle = _vehicle;
+		
 		parentCity = _parentCity;
 	}
 	
-	public City getVehiculePosition() {
+	public City getVehiclePosition() {
 		return vehiculePos;
 	}
 	
@@ -53,17 +50,13 @@ public class planNode {
 	
 	// Need to shorten this!
 	
-	public ArrayList<planNode> expandNodesAStar()
+	public ArrayList<planNode> expandNodes()
 	{
 		System.out.println("------ new expansion ------");
 		System.out.println("parent node: "+parentCity);
 		ArrayList<planNode> childNodes = new ArrayList<planNode>();
-		
-		ArrayList<planNode> newChildren = expandOverNeighbours(nodeState, capacity);
-		childNodes.addAll(newChildren);
-		
-		// How many tasks in this city?
 		ArrayList<Integer> subState = createSubState(nodeState);
+		
 		int nbrTasks = subState.size();
 		int nbrSubStates = (int) Math.pow(2,nbrTasks);
 		
@@ -71,36 +64,25 @@ public class planNode {
 		for(int i = 0; i < nbrSubStates; i++) {
 			int newCapacity = capacity;
 			// Loop through the task list and select the right ones
-			/**
-			 * Create a table in format
-			 * task 1 | task 2 | ... | task n
-			 * p | p | p | p
-			 * p | p | p | -
-			 * p | p | - | p
-			 * ...
-			 */
 			ArrayList<ArrayList<Object>> childNodeState = nodeState;
-			boolean validState = true;
 			System.out.print("\n|");
 			for(int j = 0; j < nbrTasks; j++) {
 				if(i % j < (int) Math.pow(2, j)) {
-					
 					Task currentTask = (Task) childNodeState.get(j).get(0);
-					if(newCapacity + currentTask.weight < totalCapacity) {
+					if(checkCapacity(newCapacity, currentTask)) {
 						newCapacity += currentTask.weight;
 						childNodeState.get(j).set(1, PICKEDUP);
 						System.out.print("x |");
 					} else {
-						validState = false;
+						childNodeState = null;
 						System.out.print("- |");
 						break;
 					}
 				}
 			}
 			
-			if(validState) {
-				// Go through all the cities
-				newChildren = expandOverNeighbours(childNodeState, newCapacity);
+			if(null != childNodeState) {
+				ArrayList<planNode> newChildren = expandOverNeighbours(childNodeState, newCapacity);
 				childNodes.addAll(newChildren);
 			}
 		}
@@ -118,7 +100,7 @@ public class planNode {
 	 * @return subState
 	 */
 	
-	public ArrayList<Integer> createSubState(ArrayList<ArrayList<Object>> currentState) {
+	private ArrayList<Integer> createSubState(ArrayList<ArrayList<Object>> currentState) {
 		ArrayList<Integer> subState = new ArrayList<Integer>();
 		
 		int size = currentState.size();
@@ -134,7 +116,7 @@ public class planNode {
 		return subState;
 	}
 	
-	public ArrayList<planNode> expandOverNeighbours(ArrayList<ArrayList<Object>> newState, int newCapacity) {
+	private ArrayList<planNode> expandOverNeighbours(ArrayList<ArrayList<Object>> newState, int newCapacity) {
 		ArrayList<planNode> children = new ArrayList<planNode>();
 		
 		List<City> neighbours = vehiculePos.neighbors();
@@ -144,13 +126,31 @@ public class planNode {
 			City neighbour = iterator.next();
 			System.out.println("to: "+neighbour);
 			// Calculate cost
-			int newCost = (int) (neighbour.distanceTo(parentCity) * vehicle.costPerKm());
+			double newCost = costs + (neighbour.distanceTo(parentCity) * vehicle.costPerKm());
 			// create new child node
 			planNode child = new planNode(vehicle, neighbour, newState, newCapacity, newCost);
 			children.add(child);
 		}
 		
 		return children;
+	}
+	
+	private boolean checkCapacity(int capacity, Task currentTask) {
+		return (capacity + currentTask.weight) < totalCapacity;
+	}
+	
+	private ArrayList<ArrayList<Object>> checkDelivery(ArrayList<ArrayList<Object>> currentState) {
+		int size = currentState.size();
+		for(int i = 0; i < size; i++) {
+			System.out.println("Check task");
+			Task task = (Task) currentState.get(i).get(0);
+			Object taskStatus = currentState.get(i).get(1);
+			if(task.deliveryCity == parentCity && taskStatus.equals(PICKEDUP)) {
+				currentState.get(i).set(1, DELIVERED);
+				System.out.println("Task delivered");
+			}
+		}
+		return currentState;
 	}
 	
 }
