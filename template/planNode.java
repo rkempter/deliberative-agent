@@ -26,7 +26,7 @@ public class planNode {
 	
 	public planNode(Vehicle _vehicle, City _nodeCity, ArrayList<ArrayList<Object>> _nodeState, int _capacity, double _costs, planNode _parent)
 	{
-		nodeState = checkDelivery(_nodeState);
+		nodeState = _nodeState;
 		vehicle = _vehicle;
 		totalCapacity = vehicle.capacity();
 		capacity = _capacity;
@@ -39,8 +39,8 @@ public class planNode {
 		return costs;
 	}
 	
-	public String getCity() {
-		return nodeCity.toString();
+	public City getCity() {
+		return nodeCity;
 	}
 	
 	public void printState() {
@@ -132,39 +132,69 @@ public class planNode {
 	
 	private ArrayList<planNode> expandOverNeighbours(ArrayList<ArrayList<Object>> newState, int newCapacity) {
 		ArrayList<planNode> children = new ArrayList<planNode>();
+		ArrayList<planNode> childrenDeliver = new ArrayList<planNode>();
 		
 		List<City> neighbours = nodeCity.neighbors();
 		Iterator<City> iterator = neighbours.iterator();
 		
 		while(iterator.hasNext()) {
 			City neighbour = iterator.next();
+			
+			// Can I deliver a packet?
+			
 			// Calculate cost
 			double newCost = costs + (neighbour.distanceTo(nodeCity) * vehicle.costPerKm());
 			// create new child node
 			planNode child = new planNode(vehicle, neighbour, newState, newCapacity, newCost, this);
-			children.add(child);
+			boolean delivery = child.deliverTasks();
+			if(delivery) {
+				childrenDeliver.add(child);
+			} else {
+				children.add(child);
+			}
 		}
-		
-		return children;
+		if(childrenDeliver.size() > 0) {
+			return childrenDeliver;
+		} else {
+			return children;
+		}
 	}
 	
 	private boolean checkCapacity(int capacity, Task currentTask) {
 		return (capacity + currentTask.weight) < totalCapacity;
 	}
 	
-	private ArrayList<ArrayList<Object>> checkDelivery(ArrayList<ArrayList<Object>> currentState) {
+	private boolean deliverTasks() {
 //		System.out.println("---- Show status ------");
-		int size = currentState.size();
+		int size = nodeState.size();
+		boolean delivered = false;
 		for(int i = 0; i < size; i++) {
-			Task task = (Task) currentState.get(i).get(0);
-			Object taskStatus = currentState.get(i).get(1);
+			Task task = (Task) nodeState.get(i).get(0);
+			Object taskStatus = nodeState.get(i).get(1);
 
 			if(task.deliveryCity == nodeCity && taskStatus.equals(PICKEDUP)) {
-				currentState.get(i).set(1, DELIVERED);
-				System.out.println("Task delivered");
+				nodeState.get(i).set(1, DELIVERED);
+//				System.out.println("Task delivered");
+				delivered = true;
 			}
 		}
-		return currentState;
+		return delivered;
 	}
 	
+	public int numberDeliveredTasks() {
+//		System.out.println("---- Show status ------");
+		int size = nodeState.size();
+		int j = 0;
+		for(int i = 0; i < size; i++) {
+			Object taskStatus = nodeState.get(i).get(1);
+			
+			if(taskStatus.equals(DELIVERED)) {
+				j++;
+			}
+		}
+		if(nodeState.size() == j) {
+			System.out.println("Goal state!");
+		}
+		return j;
+	}
 }

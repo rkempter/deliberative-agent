@@ -90,17 +90,18 @@ public class DeliberativeTemplate implements DeliberativeBehavior {
 			planNode currentNode = startNode;
 			int i = 0;
 			while(!checkGoalState(currentState)) {
-				System.out.println("--------");
+//				System.out.println("--------");
 				ArrayList<planNode> childQueue = currentNode.expandNodes();
 				nodeQueue.addAll(childQueue);
 				currentNode = nodeQueue.remove();
-				System.out.println("best node cost: "+currentNode.getCosts());
-				System.out.println("best node city: "+currentNode.getCity());
+//				System.out.println("best node cost: "+currentNode.getCosts());
+//				System.out.println("best node city: "+currentNode.getCity());
 				//currentNode.printState();
 				visitedNodes.add(currentNode);
+//				System.out.println(currentNode.numberDeliveredTasks());
 				currentState = currentNode.getState();
 				i++;
-				System.out.println("Node created: "+i);
+//				System.out.println("Node created: "+i);
 			}
 			System.out.println("Arrived at goal node");
 			planNode goalNode = currentNode;
