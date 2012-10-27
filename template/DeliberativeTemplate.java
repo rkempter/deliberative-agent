@@ -87,7 +87,7 @@ public class DeliberativeTemplate implements DeliberativeBehavior {
 			planNode currentNode = null;
 			
 			while(checkGoalState(currentState)) {
-				PriorityQueue<planNode> childQueue = startNode.expandNodesAStar();
+				ArrayList<planNode> childQueue = startNode.expandNodesAStar();
 				nodeQueue.addAll(childQueue);
 				currentNode = nodeQueue.remove();
 				currentState = currentNode.getState();

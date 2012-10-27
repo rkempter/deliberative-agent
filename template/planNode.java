@@ -51,14 +51,13 @@ public class planNode {
 		return nodeState;
 	}
 	
-	// Lorenzo: For the A* Algorithm, it is actually better if I solve it with a heap datastructure instead of an ArrayList!
+	// Need to shorten this!
 	
-	public PriorityQueue<planNode> expandNodesAStar()
+	public ArrayList<planNode> expandNodesAStar()
 	{
 		System.out.println("------ new expansion ------");
 		System.out.println("parent node: "+parentCity);
-		Comparator<planNode> comparator = new planNodeComparator();
-		PriorityQueue<planNode> childNodes = new PriorityQueue<planNode>(10, comparator);
+		ArrayList<planNode> childNodes = new ArrayList<planNode>();
 		
 		// Move to neighbours
 		List<City> neighbours = vehiculePos.neighbors();
