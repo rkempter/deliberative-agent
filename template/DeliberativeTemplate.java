@@ -168,4 +168,39 @@ public class DeliberativeTemplate implements DeliberativeBehavior {
 		planNode startNode = new planNode(vehicle, vehicle.getCurrentCity(), startState, 0, 0, null);
 		return startNode;
 	}
+	
+	private Plan backtrackingPlan(planNode goalNode) {
+		Plan optimalPlan;
+		planNode currentNode = goalNode;
+		ArrayList<planNode> path = new ArrayList<planNode>();
+		
+		while(currentNode != null) {
+			path.add(currentNode);
+			currentNode = currentNode.getParent();
+		}
+		
+		int first = path.size() - 1;
+		optimalPlan = new Plan(path.get(first).getCity());
+		for(int i = first-1; i >= 0; i--) {
+			City nextCity = path.get(i).getCity();
+			optimalPlan.appendMove(nextCity);
+			int stateSize = path.get(i).getState().size();
+			for(int j = 0; j < stateSize; j++) {
+				if(path.get(i).getState().get(j).get(1).equals(path.get(i+1).getState().get(j).get(1))) {
+					Object action = path.get(i).getState().get(j).get(1);// switch pickup or delivery
+					Task currentTask = (Task) path.get(i).getState().get(j).get(0);
+					
+					// Transform this
+					switch(action) {
+					case PICKEDUP:
+						optimalPlan.appendPickup(currentTask);
+					case DELIVERED:
+						optimalPlan.appendDelivery(currentTask);
+					}
+				}
+			}
+		}
+		
+		return optimalPlan;
+	}
 }
