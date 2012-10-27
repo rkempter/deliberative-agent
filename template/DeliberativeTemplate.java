@@ -2,7 +2,9 @@ package template;
 
 /* import table */
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.Iterator;
+import java.util.PriorityQueue;
 
 import logist.simulation.Vehicle;
 import logist.agent.Agent;
@@ -58,6 +60,7 @@ public class DeliberativeTemplate implements DeliberativeBehavior {
 	public Plan plan(Vehicle vehicle, TaskSet tasks) {
 		Plan plan;
 		
+		// Externalize this stuff
 		
 		Iterator<Task> itr = tasks.iterator();
 		
@@ -73,10 +76,27 @@ public class DeliberativeTemplate implements DeliberativeBehavior {
 			goalState.get(goalState.size()-1).add(DELIVERED);
 		}
 		
+		planNode startNode = null;
+		
 		// Compute the plan with the selected algorithm.
 		switch (algorithm) {
 		case ASTAR:
-			// ...
+			Comparator<planNode> comparator = new planNodeComparator();
+			PriorityQueue<planNode> nodeQueue = new PriorityQueue<planNode> (10, comparator);
+			ArrayList<ArrayList<Object>> currentState = startState;
+			planNode currentNode = null;
+			
+			while(checkGoalState(currentState)) {
+				PriorityQueue<planNode> childQueue = startNode.expandNodesAStar();
+				nodeQueue.addAll(childQueue);
+				currentNode = nodeQueue.remove();
+				currentState = currentNode.getState();
+			}
+			
+			planNode goalNode = currentNode;
+			
+			// Do backtracking from goalnode and create plan
+			
 			plan = naivePlan(vehicle, tasks);
 			break;
 		case BFS:
@@ -120,5 +140,16 @@ public class DeliberativeTemplate implements DeliberativeBehavior {
 			// you will need to consider the carriedTasks when the next
 			// plan is computed.
 		}
+	}
+	
+	public boolean checkGoalState(ArrayList<ArrayList<Object>> state) {
+		int stateSize = state.size();
+		for(int i = 0; i < stateSize; i++) {
+			if(!state.get(i).get(1).equals(DELIVERED)) {
+				return false;
+			}
+		}
+		
+		return true;
 	}
 }
