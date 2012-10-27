@@ -85,15 +85,17 @@ public class DeliberativeTemplate implements DeliberativeBehavior {
 			PriorityQueue<planNode> nodeQueue = new PriorityQueue<planNode> (10, comparator);
 			ArrayList<ArrayList<Object>> currentState = startState;
 			ArrayList<planNode> visitedNodes = new ArrayList<planNode>();
-			planNode currentNode = null;
-			
-			while(!checkGoalState(currentState)) {
+			planNode currentNode = startNode;
+			int i = 0;
+			while(!checkGoalState(currentState) && i < 3) {
 				System.out.println("Expand new node");
-				ArrayList<planNode> childQueue = startNode.expandNodes();
+				ArrayList<planNode> childQueue = currentNode.expandNodes();
 				nodeQueue.addAll(childQueue);
 				currentNode = nodeQueue.remove();
+				System.out.println("best node cost: "+currentNode.getCosts());
 				visitedNodes.add(currentNode);
 				currentState = currentNode.getState();
+				i++;
 			}
 			System.out.println("Arrived at goal node");
 			planNode goalNode = currentNode;
@@ -157,7 +159,7 @@ public class DeliberativeTemplate implements DeliberativeBehavior {
 	}
 	
 	private planNode createStartNode(Vehicle vehicle, ArrayList<ArrayList<Object>> startState) {
-		planNode startNode = new planNode(vehicle, vehicle.getCurrentCity(), startState, 0, 0);
+		planNode startNode = new planNode(vehicle, vehicle.getCurrentCity(), startState, 0, 0, null);
 		return startNode;
 	}
 }

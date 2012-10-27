@@ -16,28 +16,23 @@ public class planNode {
 	private ArrayList<ArrayList<Object>> nodeState;
 	private int capacity;
 	private double costs;
-	private City vehiculePos;
 	private int totalCapacity;
 	private Vehicle vehicle;
-	private City parentCity;
+	private City nodeCity;
 	
 	private static final int INITSTATE = 0;
 	private static final int PICKEDUP = 1;
 	private static final int DELIVERED = 2;
 	
-	public planNode(Vehicle _vehicle, City _parentCity, ArrayList<ArrayList<Object>> _nodeState, int _capacity, double _costs)
+	public planNode(Vehicle _vehicle, City _nodeCity, ArrayList<ArrayList<Object>> _nodeState, int _capacity, double _costs, planNode _parent)
 	{
 		nodeState = checkDelivery(_nodeState);
 		vehicle = _vehicle;
 		totalCapacity = vehicle.capacity();
 		capacity = _capacity;
 		costs = _costs;
-		
-		parentCity = _parentCity;
-	}
-	
-	public City getVehiclePosition() {
-		return vehiculePos;
+		parent = _parent;
+		nodeCity = _nodeCity;
 	}
 	
 	public double getCosts() {
@@ -53,29 +48,39 @@ public class planNode {
 	public ArrayList<planNode> expandNodes()
 	{
 		System.out.println("------ new expansion ------");
-		System.out.println("parent node: "+parentCity);
+		System.out.println("actual node: "+nodeCity);
+		System.out.println("Costs; "+costs);
+		System.out.println("-----------Check nodestate!");
+		System.out.println(nodeState.get(0).get(1));
+		
 		ArrayList<planNode> childNodes = new ArrayList<planNode>();
 		ArrayList<Integer> subState = createSubState(nodeState);
 		
 		int nbrTasks = subState.size();
 		int nbrSubStates = (int) Math.pow(2,nbrTasks);
+		System.out.println("Number of tasks: "+nbrTasks);
 		
 		// Loop through all substates
 		for(int i = 0; i < nbrSubStates; i++) {
+			System.out.println("substate iteration");
 			int newCapacity = capacity;
 			// Loop through the task list and select the right ones
 			ArrayList<ArrayList<Object>> childNodeState = nodeState;
-			System.out.print("\n|");
 			for(int j = 0; j < nbrTasks; j++) {
-				if(i % j < (int) Math.pow(2, j)) {
+				ArrayList<Object> taskStateObject = new ArrayList<Object>();
+				if(i % (int) Math.pow(2, j+1) < ((int) Math.pow(2, j+1) / 2)) {
 					Task currentTask = (Task) childNodeState.get(j).get(0);
-					if(checkCapacity(newCapacity, currentTask)) {
+					Object taskState = childNodeState.get(j).get(1);
+					if(checkCapacity(newCapacity, currentTask) && taskState.equals(INITSTATE)) {
 						newCapacity += currentTask.weight;
-						childNodeState.get(j).set(1, PICKEDUP);
+						taskStateObject.add(currentTask);
+						taskStateObject.add(PICKEDUP);
+						childNodeState.set(j, taskStateObject);
+						System.out.println("pickup");
 						System.out.print("x |");
 					} else {
 						childNodeState = null;
-						System.out.print("- |");
+						System.out.println("move");
 						break;
 					}
 				}
@@ -86,6 +91,9 @@ public class planNode {
 				childNodes.addAll(newChildren);
 			}
 		}
+		
+		System.out.println("-----------Check nodestate!");
+		System.out.println(nodeState.get(0).get(1));
 		
 		return childNodes;
 	}
@@ -108,7 +116,7 @@ public class planNode {
 			ArrayList<Object> current = currentState.get(i);
 			Task task = (Task) current.get(0);
 			Integer pos = new Integer(i);
-			if(task.pickupCity == parentCity && current.get(1).equals(INITSTATE)) {
+			if(task.pickupCity == nodeCity && current.get(1).equals(INITSTATE)) {
 				subState.add(pos);
 			}
 		}
@@ -119,16 +127,19 @@ public class planNode {
 	private ArrayList<planNode> expandOverNeighbours(ArrayList<ArrayList<Object>> newState, int newCapacity) {
 		ArrayList<planNode> children = new ArrayList<planNode>();
 		
-		List<City> neighbours = vehiculePos.neighbors();
+		List<City> neighbours = nodeCity.neighbors();
 		Iterator<City> iterator = neighbours.iterator();
 		
 		while(iterator.hasNext()) {
+			System.out.println("Create node");
 			City neighbour = iterator.next();
 			System.out.println("to: "+neighbour);
 			// Calculate cost
-			double newCost = costs + (neighbour.distanceTo(parentCity) * vehicle.costPerKm());
+			System.out.println("Distance to "+nodeCity+": "+neighbour.distanceTo(nodeCity)+" costs per km: "+vehicle.costPerKm()+" makes "+(neighbour.distanceTo(nodeCity) * vehicle.costPerKm()));
+			double newCost = costs + (neighbour.distanceTo(nodeCity) * vehicle.costPerKm());
+			System.out.println("New costs: "+newCost);
 			// create new child node
-			planNode child = new planNode(vehicle, neighbour, newState, newCapacity, newCost);
+			planNode child = new planNode(vehicle, neighbour, newState, newCapacity, newCost, this);
 			children.add(child);
 		}
 		
@@ -140,12 +151,13 @@ public class planNode {
 	}
 	
 	private ArrayList<ArrayList<Object>> checkDelivery(ArrayList<ArrayList<Object>> currentState) {
+		System.out.println("---- Show status ------");
 		int size = currentState.size();
 		for(int i = 0; i < size; i++) {
-			System.out.println("Check task");
 			Task task = (Task) currentState.get(i).get(0);
 			Object taskStatus = currentState.get(i).get(1);
-			if(task.deliveryCity == parentCity && taskStatus.equals(PICKEDUP)) {
+			System.out.println(taskStatus);
+			if(task.deliveryCity == nodeCity && taskStatus.equals(PICKEDUP)) {
 				currentState.get(i).set(1, DELIVERED);
 				System.out.println("Task delivered");
 			}

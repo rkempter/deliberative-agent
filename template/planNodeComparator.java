@@ -6,9 +6,9 @@ public class planNodeComparator implements Comparator<planNode>{
 
 	public int compare(planNode x, planNode y)
 	{
-		if(x.getCosts() > y.getCosts()) {
+		if(x.getCosts() < y.getCosts()) {
 			return -1;
-		} else if(x.getCosts() < y.getCosts()) {
+		} else if(x.getCosts() > y.getCosts()) {
 			return 1;
 		}
 		return 0;
