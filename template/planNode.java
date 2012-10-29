@@ -2,8 +2,6 @@ package template;
 
 /* import table */
 import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.PriorityQueue;
 import java.util.Iterator;
 import java.util.List;
 
@@ -13,17 +11,21 @@ import logist.topology.Topology.City;
 
 public class planNode {
 	private planNode parent;
+	public planNode getParent() {
+		return parent;
+	}
+
 	private ArrayList<ArrayList<Object>> nodeState;
 	private int capacity;
 	private double costs;
 	private int totalCapacity;
 	private Vehicle vehicle;
 	private City nodeCity;
-	
+
 	private static final int INITSTATE = 0;
 	private static final int PICKEDUP = 1;
 	private static final int DELIVERED = 2;
-	
+
 	public planNode(Vehicle _vehicle, City _nodeCity, ArrayList<ArrayList<Object>> _nodeState, int _capacity, double _costs, planNode _parent)
 	{
 		nodeState = _nodeState;
@@ -34,41 +36,41 @@ public class planNode {
 		parent = _parent;
 		nodeCity = _nodeCity;
 	}
-	
+
 	public double getCosts() {
 		return costs;
 	}
-	
+
 	public City getCity() {
 		return nodeCity;
 	}
-	
+
 	public void printState() {
 		System.out.println(nodeState);
 	}
-	
+
 	public ArrayList<ArrayList<Object>> getState() {
 		return nodeState;
 	}
-	
+
 	// Need to shorten this!
-	
-	public ArrayList<planNode> expandNodes()
-	{
-//		System.out.println("------ new expansion ------");
-//		System.out.println("actual node: "+nodeCity);
-//		System.out.println("Costs; "+costs);
-//		System.out.println("-----------Check nodestate!");
-//		System.out.println(nodeState.get(0).get(1));
-		
+
+	public ArrayList<planNode> expandNodes(){
+		//		System.out.println("------ new expansion ------");
+		//		System.out.println("actual node: "+nodeCity);
+		//		System.out.println("Costs; "+costs);
+		//		System.out.println("-----------Check nodestate!");
+		//		System.out.println(nodeState.get(0).get(1));
+
 		ArrayList<planNode> childNodes = new ArrayList<planNode>();
 		ArrayList<Integer> subState = createSubState(nodeState);
-		
+		System.out.println("Tasks to be picked up in current city: "+ subState);
+
 		int nbrTasks = subState.size();
 		int nbrSubStates = (int) Math.pow(2,nbrTasks);
-//		System.out.println("Number of tasks: "+nbrTasks);
-		
-		// Loop through all substates
+		//System.out.println("Number of tasks in current city: "+nbrTasks);
+
+		// Loop through all possible sub states
 		for(int i = 0; i < nbrSubStates; i++) {
 			int newCapacity = capacity;
 			// Loop through the task list and select the right ones
@@ -78,32 +80,33 @@ public class planNode {
 					int pos = subState.get(j);
 					Task currentTask = (Task) childNodeState.get(pos).get(0);
 					Object taskState = childNodeState.get(pos).get(1);
-					
-					// Replace the element because of references in arraylist
+
+					// Replace the element because of references in arrayList
 					ArrayList<Object> taskObject = new ArrayList<Object>();
 					if(checkCapacity(newCapacity, currentTask) && taskState.equals(INITSTATE)) {
 						newCapacity += currentTask.weight;
 						taskObject.add(currentTask);
 						taskObject.add(PICKEDUP);
 						childNodeState.set(pos, taskObject);
-//						System.out.println("pickup");
+						//System.out.println("pickup");
 					} else {
 						childNodeState = null;
-//						System.out.println("move");
+						//System.out.println("move");
 						break;
 					}
 				}
 			}
-			
-			if(null != childNodeState) {
+			System.out.println("State is: "+ childNodeState);
+
+			if( childNodeState!= null) {
 				ArrayList<planNode> newChildren = expandOverNeighbours(childNodeState, newCapacity);
 				childNodes.addAll(newChildren);
 			}
 		}
-		
+
 		return childNodes;
 	}
-	
+
 	/**
 	 * All tasks, that are on the current city (vehicle position)
 	 * and haven't been moved yet, are extracted from the currentState
@@ -113,12 +116,11 @@ public class planNode {
 	 * @param currentState
 	 * @return subState
 	 */
-	
+
 	private ArrayList<Integer> createSubState(ArrayList<ArrayList<Object>> currentState) {
 		ArrayList<Integer> subState = new ArrayList<Integer>();
-		
-		int size = currentState.size();
-		for(int i = 0; i < size; i++) {
+
+		for(int i = 0; i < currentState.size(); i++) {
 			ArrayList<Object> current = currentState.get(i);
 			Task task = (Task) current.get(0);
 			Integer pos = new Integer(i);
@@ -126,22 +128,21 @@ public class planNode {
 				subState.add(pos);
 			}
 		}
-		
+
 		return subState;
 	}
-	
+
 	private ArrayList<planNode> expandOverNeighbours(ArrayList<ArrayList<Object>> newState, int newCapacity) {
 		ArrayList<planNode> children = new ArrayList<planNode>();
 		ArrayList<planNode> childrenDeliver = new ArrayList<planNode>();
-		
+
 		List<City> neighbours = nodeCity.neighbors();
 		Iterator<City> iterator = neighbours.iterator();
-		
+
 		while(iterator.hasNext()) {
 			City neighbour = iterator.next();
-			
+
 			// Can I deliver a packet?
-			
 			// Calculate cost
 			double newCost = costs + (neighbour.distanceTo(nodeCity) * vehicle.costPerKm());
 			// create new child node
@@ -159,35 +160,34 @@ public class planNode {
 			return children;
 		}
 	}
-	
+
 	private boolean checkCapacity(int capacity, Task currentTask) {
 		return (capacity + currentTask.weight) < totalCapacity;
 	}
-	
+
 	private boolean deliverTasks() {
-//		System.out.println("---- Show status ------");
-		int size = nodeState.size();
+		//System.out.println("---- Show status ------");
 		boolean delivered = false;
-		for(int i = 0; i < size; i++) {
+		for(int i = 0; i < nodeState.size(); i++) {
 			Task task = (Task) nodeState.get(i).get(0);
 			Object taskStatus = nodeState.get(i).get(1);
 
 			if(task.deliveryCity == nodeCity && taskStatus.equals(PICKEDUP)) {
 				nodeState.get(i).set(1, DELIVERED);
-//				System.out.println("Task delivered");
+				//System.out.println("Task delivered");
 				delivered = true;
 			}
 		}
 		return delivered;
 	}
-	
+
 	public int numberDeliveredTasks() {
-//		System.out.println("---- Show status ------");
+		//		System.out.println("---- Show status ------");
 		int size = nodeState.size();
 		int j = 0;
 		for(int i = 0; i < size; i++) {
 			Object taskStatus = nodeState.get(i).get(1);
-			
+
 			if(taskStatus.equals(DELIVERED)) {
 				j++;
 			}
