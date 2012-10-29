@@ -52,7 +52,7 @@ public class planeNodeTemp {
 	public ArrayList<ArrayList<Object>> getState() {
 		return nodeState;
 	}
-	public boolean computeHash(ArrayList<ArrayList<Object>> state, double newCost){
+	public boolean computeHash(ArrayList<ArrayList<Object>> state, double newCost, City newCity){
 		int hashCode= state.hashCode();
 		boolean present= false;
 		boolean shouldAddNode= true;
@@ -61,7 +61,7 @@ public class planeNodeTemp {
 			if(hashTable.get(i).get(0).equals(hashCode)){
 				present= true;
 				if (algorithm.equals(Algorithm.ASTAR)){
-					shouldAddNode= checkBestWeight(hashTable.get(i).get(1), newCost);
+					shouldAddNode= checkBestWeight(hashTable.get(i).get(1), newCost, newCity);
 				}
 				else if(algorithm.equals(Algorithm.BFS)){
 					//System.out.println("Node already present");
@@ -76,8 +76,8 @@ public class planeNodeTemp {
 		}
 		return shouldAddNode;
 	}
-	public boolean checkBestWeight(Object node, double newCost){
-		if(newCost> ((planeNodeTemp)node).costs)
+	public boolean checkBestWeight(Object node, double newCost, City newCity){
+		if(newCost> ((planeNodeTemp)node).costs && newCity.equals(((planeNodeTemp)node).nodeCity))
 			return false;
 		else{
 			((planeNodeTemp)node).deleteNodeAndSubtree();
@@ -137,7 +137,7 @@ public class planeNodeTemp {
 		if(nodeState.get(selectedTaskIndex).get(1).equals(PICKEDUP)){			//selected task is PICKEDUP
 			double newCost = costs + (nodeCity.distanceTo(((Task)nodeState.get(selectedTaskIndex).get(0)).deliveryCity) * vehicle.costPerKm());
 			int newCapacity= deliverTasks(newState, ((Task)nodeState.get(selectedTaskIndex).get(0)).deliveryCity);
-			if(computeHash(newState, newCost)){
+			if(computeHash(newState, newCost, ((Task)nodeState.get(selectedTaskIndex).get(0)).deliveryCity)){
 				child = new planeNodeTemp(vehicle, ((Task)nodeState.get(selectedTaskIndex).get(0)).deliveryCity, newState, newCapacity, newCost, this, hashTable, algorithm.name());
 				children.add(child);
 			}
@@ -147,7 +147,7 @@ public class planeNodeTemp {
 				newState.get(selectedTaskIndex).set(1, PICKEDUP);
 				double newCost = costs + (nodeCity.distanceTo(((Task)nodeState.get(selectedTaskIndex).get(0)).pickupCity) * vehicle.costPerKm());
 				int newCapacity= capacity- ((Task)nodeState.get(selectedTaskIndex).get(0)).weight;
-				if(computeHash(newState, newCost)){
+				if(computeHash(newState, newCost, ((Task)nodeState.get(selectedTaskIndex).get(0)).pickupCity)){
 					child = new planeNodeTemp(vehicle, ((Task)nodeState.get(selectedTaskIndex).get(0)).pickupCity, newState, newCapacity, newCost, this, hashTable, algorithm.name());
 					children.add(child);
 				}
