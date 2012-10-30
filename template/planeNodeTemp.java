@@ -40,6 +40,10 @@ public class planeNodeTemp {
 	public double getCosts() {
 		return costs;
 	}
+	
+	public int getCostsPerKm() {
+		return vehicle.costPerKm();
+	}
 
 	public City getCity() {
 		return nodeCity;
@@ -53,23 +57,24 @@ public class planeNodeTemp {
 		return nodeState;
 	}
 	public boolean computeHash(ArrayList<ArrayList<Object>> state, double newCost){
-		int hashCode= state.hashCode();
-		boolean present= false;
-		boolean shouldAddNode= true;
+		int hashCode = state.hashCode();
+		boolean present = false;
+		boolean shouldAddNode = true;
 
 		for(int i=0; i< hashTable.size(); i++){
 			if(hashTable.get(i).get(0).equals(hashCode)){
-				present= true;
+				present = true;
 				if (algorithm.equals(Algorithm.ASTAR)){
 					shouldAddNode= checkBestWeight(hashTable.get(i).get(1), newCost);
 				}
 				else if(algorithm.equals(Algorithm.BFS)){
 					//System.out.println("Node already present");
-					shouldAddNode= false;
+					shouldAddNode = false;
 				}
 			}
 		}
-		if(present==false){
+		
+		if(present == false) {
 			hashTable.add(new ArrayList<Object>());
 			hashTable.get(hashTable.size()-1).add(state.hashCode());
 			hashTable.get(hashTable.size()-1).add(this);
@@ -143,7 +148,7 @@ public class planeNodeTemp {
 			}
 		}
 		else{			//if task is still in INITSTATE mode
-			if(capacity>= ((Task)nodeState.get(selectedTaskIndex).get(0)).weight){
+			if(capacity >= ((Task)nodeState.get(selectedTaskIndex).get(0)).weight){
 				newState.get(selectedTaskIndex).set(1, PICKEDUP);
 				double newCost = costs + (nodeCity.distanceTo(((Task)nodeState.get(selectedTaskIndex).get(0)).pickupCity) * vehicle.costPerKm());
 				int newCapacity= capacity- ((Task)nodeState.get(selectedTaskIndex).get(0)).weight;
