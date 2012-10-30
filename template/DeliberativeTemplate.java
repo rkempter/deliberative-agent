@@ -48,7 +48,7 @@ public class DeliberativeTemplate implements DeliberativeBehavior {
 		this.agent = agent;
 
 		// initialize the planner
-		String algorithmName = agent.readProperty("algorithm", String.class, "BFS");
+		String algorithmName = agent.readProperty("algorithm", String.class, "ASTAR");
 
 		// Throws IllegalArgumentException if algorithm is unknown
 		algorithm = Algorithm.valueOf(algorithmName.toUpperCase());
@@ -58,6 +58,8 @@ public class DeliberativeTemplate implements DeliberativeBehavior {
 	@Override
 	public Plan plan(Vehicle vehicle, TaskSet tasks) {
 		Plan plan = null;
+		planeNodeTemp goalNode;
+		planeNodeTemp currentNode;
 
 		Iterator<Task> itr = tasks.iterator();
 
@@ -78,52 +80,54 @@ public class DeliberativeTemplate implements DeliberativeBehavior {
 		planeNodeTemp startNode = createStartNode(vehicle, startState, tasks);
 		ArrayList<ArrayList<Object>> currentState = startState;
 		// Compute the plan with the selected algorithm.
+		algorithm = Algorithm.ASTAR;
 		switch (algorithm) {
 		case ASTAR:
-//			System.out.println("Debug Astar");
-//			Comparator<planNode> comparator = new planNodeComparator();
-//			PriorityQueue<planNode> nodeQueue = new PriorityQueue<planNode> (1000, comparator);
-//			ArrayList<planNode> visitedNodes = new ArrayList<planNode>();
-//			planNode currentNode = startNode;
-//			int i = 0;
-//			while(!checkGoalState(currentState)) {
-//				//				System.out.println("--------");
-//				ArrayList<planNode> childQueue = currentNode.expandNodes();
-//				nodeQueue.addAll(childQueue);
-//				currentNode = nodeQueue.remove();
-//				//				System.out.println("best node cost: "+currentNode.getCosts());
-//				//				System.out.println("best node city: "+currentNode.getCity());
-//				//currentNode.printState();
-//				visitedNodes.add(currentNode);
-//				//				System.out.println(currentNode.numberDeliveredTasks());
-//				currentState = currentNode.getState();
-//				i++;
-//				//				System.out.println("Node created: "+i);
-//			}
-//			System.out.println("Arrived at goal node");
-//			planNode goalNode = currentNode;
-//
-//			// Do backtracking from goalnode and create plan
-//
-//			plan = naivePlan(vehicle, tasks);
+			System.out.println("Debug Astar");
+			Comparator<planeNodeTemp> comparator = new planNodeComparator();
+			PriorityQueue<planeNodeTemp> nodeQueue = new PriorityQueue<planeNodeTemp> (1000, comparator);
+			ArrayList<planeNodeTemp> visitedNodes = new ArrayList<planeNodeTemp>();
+			currentNode = startNode;
+			int i = 0;
+			while(!checkGoalState(currentState)) {
+				//				System.out.println("--------");
+				ArrayList<planeNodeTemp> childQueue = currentNode.expandNodes();
+				nodeQueue.addAll(childQueue);
+				currentNode = nodeQueue.remove();
+				//				System.out.println("best node cost: "+currentNode.getCosts());
+				//				System.out.println("best node city: "+currentNode.getCity());
+				//currentNode.printState();
+				visitedNodes.add(currentNode);
+				//				System.out.println(currentNode.numberDeliveredTasks());
+				currentState = currentNode.getState();
+				i++;
+				//				System.out.println("Node created: "+i);
+			}
+			System.out.println("Iteration: "+i);
+			System.out.println("Arrived at Astar goal node");
+			goalNode = currentNode;
+
+			// Do backtracking from goalnode and create plan
+
+			plan = backtrackingPlan(goalNode);
 			break;
 		case BFS:
 			System.out.println("Debug BFS");
-			planeNodeTemp currentNode = startNode;
-			ArrayList<planeNodeTemp> nodeQueue= new ArrayList<planeNodeTemp>();
-			int i = 0;
+			currentNode = startNode;
+			ArrayList<planeNodeTemp> nodeQueueList = new ArrayList<planeNodeTemp>();
+			i = 0;
 			while(!checkGoalState(currentState)) {
 				//System.out.println("--------");
 				ArrayList<planeNodeTemp> Queue = currentNode.expandNodes();
-				nodeQueue.addAll(Queue);
-				currentNode = nodeQueue.remove(0);
+				nodeQueueList.addAll(Queue);
+				currentNode = nodeQueueList.remove(0);
 				//currentNode.printState();
 				currentState = currentNode.getState();
 				i++;
 				System.out.println("Iteration: "+ i);
 			}
 			System.out.println("GOAL NODE REACHED!!!!!!!!!!!");
-			planeNodeTemp goalNode = currentNode;
+			goalNode = currentNode;
 
 			plan = backtrackingPlan(goalNode);
 			break;

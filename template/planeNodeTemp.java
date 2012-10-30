@@ -56,6 +56,16 @@ public class planeNodeTemp {
 	public ArrayList<ArrayList<Object>> getState() {
 		return nodeState;
 	}
+	
+	/**
+	 * Used for Breath first search: We don't care about the best solution,
+	 * Therefore, if we arrive at a state, where the same tasks are delivered and picked up,
+	 * we don't expand the node anymore.
+	 * 
+	 * @param state
+	 * @param newCost
+	 * @return true / false
+	 */
 	public boolean computeHash(ArrayList<ArrayList<Object>> state, double newCost){
 		int hashCode = state.hashCode();
 		boolean present = false;
@@ -64,11 +74,7 @@ public class planeNodeTemp {
 		for(int i=0; i< hashTable.size(); i++){
 			if(hashTable.get(i).get(0).equals(hashCode)){
 				present = true;
-				if (algorithm.equals(Algorithm.ASTAR)){
-					shouldAddNode= checkBestWeight(hashTable.get(i).get(1), newCost);
-				}
-				else if(algorithm.equals(Algorithm.BFS)){
-					//System.out.println("Node already present");
+				if(algorithm.equals(Algorithm.BFS)){
 					shouldAddNode = false;
 				}
 			}
@@ -81,18 +87,8 @@ public class planeNodeTemp {
 		}
 		return shouldAddNode;
 	}
-	public boolean checkBestWeight(Object node, double newCost){
-		if(newCost> ((planeNodeTemp)node).costs)
-			return false;
-		else{
-			((planeNodeTemp)node).deleteNodeAndSubtree();
-			return true;
-		}
-	}
-
 
 	public ArrayList<planeNodeTemp> expandNodes(){
-
 		ArrayList<planeNodeTemp> childNodes = new ArrayList<planeNodeTemp>();
 		ArrayList<Integer> subState = createSubState(nodeState);
 		System.out.println("------ new expansion ------");
@@ -100,8 +96,8 @@ public class planeNodeTemp {
 		System.out.println("Cost so far "+ costs);
 
 		for (int i=0; i< subState.size(); i++){
-			planeNodeTemp newState= createNewState( subState.get(i));
-			if(newState!= null){
+			planeNodeTemp newState = createNewState(subState.get(i));
+			if(newState != null){
 				childNodes.add(newState);
 			}
 		}
@@ -123,7 +119,7 @@ public class planeNodeTemp {
 
 		for(int i = 0; i < currentState.size(); i++) {
 			Integer pos = new Integer(i);
-			if(currentState.get(i).get(1).equals(INITSTATE)|| currentState.get(i).get(1).equals(PICKEDUP)) {
+			if(currentState.get(i).get(1).equals(INITSTATE) || currentState.get(i).get(1).equals(PICKEDUP)) {
 				subState.add(pos);
 			}
 		}
@@ -132,16 +128,17 @@ public class planeNodeTemp {
 
 	private planeNodeTemp createNewState(Integer selectedTaskIndex) {
 		ArrayList<ArrayList<Object>> newState= new ArrayList<ArrayList<Object>>();
+		
 		for(int i=0; i<nodeState.size(); i++){
 			newState.add(new ArrayList<Object>());
 			newState.get(i).add(nodeState.get(i).get(0));
 			newState.get(i).add(nodeState.get(i).get(1));			
 		}
 
-		planeNodeTemp child= null;
+		planeNodeTemp child = null;
 		if(nodeState.get(selectedTaskIndex).get(1).equals(PICKEDUP)){			//selected task is PICKEDUP
 			double newCost = costs + (nodeCity.distanceTo(((Task)nodeState.get(selectedTaskIndex).get(0)).deliveryCity) * vehicle.costPerKm());
-			int newCapacity= deliverTasks(newState, ((Task)nodeState.get(selectedTaskIndex).get(0)).deliveryCity);
+			int newCapacity = deliverTasks(newState, ((Task)nodeState.get(selectedTaskIndex).get(0)).deliveryCity);
 			if(computeHash(newState, newCost)){
 				child = new planeNodeTemp(vehicle, ((Task)nodeState.get(selectedTaskIndex).get(0)).deliveryCity, newState, newCapacity, newCost, this, hashTable, algorithm.name());
 				children.add(child);
