@@ -3,7 +3,6 @@ package template;
 /* import table */
 import java.util.ArrayList;
 
-import template.DeliberativeTemplate.Algorithm;
 import logist.simulation.Vehicle;
 import logist.task.Task;
 import logist.topology.Topology.City;
@@ -91,9 +90,9 @@ public class planeNodeTemp {
 	public ArrayList<planeNodeTemp> expandNodes(){
 		ArrayList<planeNodeTemp> childNodes = new ArrayList<planeNodeTemp>();
 		ArrayList<Integer> subState = createSubState(nodeState);
-		System.out.println("------ new expansion ------");
-		System.out.println("actual node: "+ nodeCity);
-		System.out.println("Cost so far "+ costs);
+//		System.out.println("------ new expansion ------");
+//		System.out.println("actual node: "+ nodeCity);
+//		System.out.println("Cost so far "+ costs);
 
 		for (int i=0; i< subState.size(); i++){
 			planeNodeTemp newState = createNewState(subState.get(i));

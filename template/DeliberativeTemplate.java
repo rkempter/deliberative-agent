@@ -36,6 +36,7 @@ public class DeliberativeTemplate implements DeliberativeBehavior {
 	private static final int PICKEDUP = 1;
 	private static final int DELIVERED = 2;
 
+	TaskSet carriedTasks;			//used to save carried task when i have to recompute the plan
 	ArrayList<ArrayList<Object>> startState= new ArrayList<ArrayList<Object>>();
 	ArrayList<ArrayList<Object>> goalState= new ArrayList<ArrayList<Object>>();
 	/* the planning class */
@@ -46,13 +47,10 @@ public class DeliberativeTemplate implements DeliberativeBehavior {
 		this.topology = topology;
 		this.td = td;
 		this.agent = agent;
-
 		// initialize the planner
 		String algorithmName = agent.readProperty("algorithm", String.class, "ASTAR");
-
 		// Throws IllegalArgumentException if algorithm is unknown
 		algorithm = Algorithm.valueOf(algorithmName.toUpperCase());
-
 	}
 
 	@Override
@@ -61,58 +59,46 @@ public class DeliberativeTemplate implements DeliberativeBehavior {
 		planeNodeTemp goalNode;
 		planeNodeTemp currentNode;
 
-		Iterator<Task> itr = tasks.iterator();
+		System.out.println( vehicle.name() +" is computing plan");
+		//System.out.println("tasks left: "+ tasks);
 
-		System.out.println("Number of tasks: "+ tasks.size());
+		generateStartGoalNode(tasks);
+		carriedTasks= null;
+		System.out.println(startState);
+		System.out.println(goalState);
 
-		while(itr.hasNext()){			
-			startState.add(new ArrayList<Object>());
-			goalState.add(new ArrayList<Object>());
-
-			Task currentTask = itr.next();
-			startState.get(startState.size()-1).add(currentTask);
-			startState.get(startState.size()-1).add(INITSTATE);
-
-			goalState.get(goalState.size()-1).add(currentTask);
-			goalState.get(goalState.size()-1).add(DELIVERED);
-		}
 
 		planeNodeTemp startNode = createStartNode(vehicle, startState, tasks);
+		System.out.println("");
 		ArrayList<ArrayList<Object>> currentState = startState;
 		// Compute the plan with the selected algorithm.
-		algorithm = Algorithm.ASTAR;
+
 		switch (algorithm) {
 		case ASTAR:
-			System.out.println("Debug Astar");
+			//System.out.println("ASTAR");
 			Comparator<planeNodeTemp> comparator = new planNodeComparator();
 			PriorityQueue<planeNodeTemp> nodeQueue = new PriorityQueue<planeNodeTemp> (1000, comparator);
 			ArrayList<planeNodeTemp> visitedNodes = new ArrayList<planeNodeTemp>();
 			currentNode = startNode;
 			int i = 0;
 			while(!checkGoalState(currentState)) {
-				//				System.out.println("--------");
 				ArrayList<planeNodeTemp> childQueue = currentNode.expandNodes();
 				nodeQueue.addAll(childQueue);
 				currentNode = nodeQueue.remove();
-				//				System.out.println("best node cost: "+currentNode.getCosts());
-				//				System.out.println("best node city: "+currentNode.getCity());
-				//currentNode.printState();
 				visitedNodes.add(currentNode);
-				//				System.out.println(currentNode.numberDeliveredTasks());
 				currentState = currentNode.getState();
 				i++;
-				//				System.out.println("Node created: "+i);
 			}
-			System.out.println("Iteration: "+i);
-			System.out.println("Arrived at Astar goal node");
+			//System.out.println("Iteration: "+i);
+			System.out.println("ASTAR: GOAL NODE REACHED!!!!!!!!!!!");
 			goalNode = currentNode;
 
-			// Do backtracking from goalnode and create plan
-
+			// Do backtracking from goal node and create plan
 			plan = backtrackingPlan(goalNode);
 			break;
+
 		case BFS:
-			System.out.println("Debug BFS");
+			System.out.println("BFS");
 			currentNode = startNode;
 			ArrayList<planeNodeTemp> nodeQueueList = new ArrayList<planeNodeTemp>();
 			i = 0;
@@ -124,9 +110,9 @@ public class DeliberativeTemplate implements DeliberativeBehavior {
 				//currentNode.printState();
 				currentState = currentNode.getState();
 				i++;
-				System.out.println("Iteration: "+ i);
+				//System.out.println("Iteration: "+ i);
 			}
-			System.out.println("GOAL NODE REACHED!!!!!!!!!!!");
+			System.out.println("BFS: GOAL NODE REACHED!!!!!!!!!!!");
 			goalNode = currentNode;
 
 			plan = backtrackingPlan(goalNode);
@@ -137,12 +123,14 @@ public class DeliberativeTemplate implements DeliberativeBehavior {
 		return plan;
 	}
 	@Override
-	public void planCancelled(TaskSet carriedTasks) {
-
-		if (!carriedTasks.isEmpty()) {
-			// This cannot happen for this simple agent, but typically
-			// you will need to consider the carriedTasks when the next
-			// plan is computed.
+	public void planCancelled(TaskSet _carriedTasks) {
+		if (!_carriedTasks.isEmpty()) {
+			//System.out.println("carrying some tasks");
+			carriedTasks= _carriedTasks;
+		}
+		else{
+			//System.out.println("carrying no tasks");
+			carriedTasks= _carriedTasks;
 		}
 	}
 
@@ -155,6 +143,37 @@ public class DeliberativeTemplate implements DeliberativeBehavior {
 		}
 		return true;
 	}
+	public void generateStartGoalNode(TaskSet tasks){
+		startState.clear();
+		goalState.clear();
+		Iterator<Task> itr = tasks.iterator();
+		while(itr.hasNext()){			
+			startState.add(new ArrayList<Object>());
+			goalState.add(new ArrayList<Object>());
+
+			Task currentTask = itr.next();
+			startState.get(startState.size()-1).add(currentTask);
+			startState.get(startState.size()-1).add(INITSTATE);
+
+			goalState.get(goalState.size()-1).add(currentTask);
+			goalState.get(goalState.size()-1).add(DELIVERED);
+		}
+
+		if(carriedTasks!=null){
+			Iterator<Task> c_itr= carriedTasks.iterator();
+			while(c_itr.hasNext()){
+				startState.add(new ArrayList<Object>());
+				goalState.add(new ArrayList<Object>());
+				
+				Task currentTask = c_itr.next();
+				goalState.get(goalState.size()-1).add(currentTask);
+				goalState.get(goalState.size()-1).add(DELIVERED);
+				startState.get(startState.size()-1).add(currentTask);
+				startState.get(startState.size()-1).add(PICKEDUP);
+			}
+		}
+	}
+
 
 	private planeNodeTemp createStartNode(Vehicle vehicle, ArrayList<ArrayList<Object>> startState, TaskSet tasks) {
 		ArrayList<ArrayList<Object>> stateHash= new ArrayList<ArrayList<Object>>();
@@ -180,7 +199,7 @@ public class DeliberativeTemplate implements DeliberativeBehavior {
 			int stateSize = path.get(i).getState().size();
 			for(int j=0; j< stateSize; j++) {
 				if(!path.get(i).getState().get(j).get(1).equals(path.get(i-1).getState().get(j).get(1))) {
-					System.out.println(path.get(i).getState().get(j).get(0));
+					//System.out.println(path.get(i).getState().get(j).get(0));
 					Object action = path.get(i).getState().get(j).get(1);			// switch pickup or delivery
 					Task currentTask = (Task) path.get(i).getState().get(j).get(0);
 
