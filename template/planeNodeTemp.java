@@ -84,6 +84,7 @@ public class planeNodeTemp {
 			hashTable.get(hashTable.size()-1).add(state.hashCode());
 			hashTable.get(hashTable.size()-1).add(this);
 		}
+		
 		return shouldAddNode;
 	}
 
@@ -100,6 +101,7 @@ public class planeNodeTemp {
 				childNodes.add(newState);
 			}
 		}
+		
 		return childNodes;
 	}
 
@@ -122,11 +124,14 @@ public class planeNodeTemp {
 				subState.add(pos);
 			}
 		}
+		
 		return subState;
 	}
 
 	private planeNodeTemp createNewState(Integer selectedTaskIndex) {
 		ArrayList<ArrayList<Object>> newState= new ArrayList<ArrayList<Object>>();
+		planeNodeTemp child = null;
+		ArrayList<Object> currentTaskNode = nodeState.get(selectedTaskIndex);
 		
 		for(int i=0; i<nodeState.size(); i++){
 			newState.add(new ArrayList<Object>());
@@ -134,45 +139,82 @@ public class planeNodeTemp {
 			newState.get(i).add(nodeState.get(i).get(1));			
 		}
 
-		planeNodeTemp child = null;
-		if(nodeState.get(selectedTaskIndex).get(1).equals(PICKEDUP)){			//selected task is PICKEDUP
-			double newCost = costs + (nodeCity.distanceTo(((Task)nodeState.get(selectedTaskIndex).get(0)).deliveryCity) * vehicle.costPerKm());
-			int newCapacity = deliverTasks(newState, ((Task)nodeState.get(selectedTaskIndex).get(0)).deliveryCity);
-			if(computeHash(newState, newCost)){
-				child = new planeNodeTemp(vehicle, ((Task)nodeState.get(selectedTaskIndex).get(0)).deliveryCity, newState, newCapacity, newCost, this, hashTable, algorithm.name());
-				children.add(child);
-			}
+		if(currentTaskNode.get(1).equals(PICKEDUP)) { //selected task is PICKEDUP
+			child = calculateNewStateParameters(newState.get(selectedTaskIndex), newState);
+		} else if(capacity >= ((Task) currentTaskNode.get(0)).weight) {
+			child = calculateNewStateParameters(newState.get(selectedTaskIndex), newState);
 		}
-		else{			//if task is still in INITSTATE mode
-			if(capacity >= ((Task)nodeState.get(selectedTaskIndex).get(0)).weight){
-				newState.get(selectedTaskIndex).set(1, PICKEDUP);
-				double newCost = costs + (nodeCity.distanceTo(((Task)nodeState.get(selectedTaskIndex).get(0)).pickupCity) * vehicle.costPerKm());
-				int newCapacity= capacity- ((Task)nodeState.get(selectedTaskIndex).get(0)).weight;
-				if(computeHash(newState, newCost)){
-					child = new planeNodeTemp(vehicle, ((Task)nodeState.get(selectedTaskIndex).get(0)).pickupCity, newState, newCapacity, newCost, this, hashTable, algorithm.name());
-					children.add(child);
-				}
-
-			}
-			else{
-				//System.out.println("Truck is full can not pick up current task!!");
-			}
-		}
+		
 		return child;
 	}
-
-	private int deliverTasks(ArrayList<ArrayList<Object>> nState, City nodeCity) {
-		int cap= capacity;
-		for(int i = 0; i < nState.size(); i++) {
-			Task task = (Task) nState.get(i).get(0);
-			Object taskStatus = nState.get(i).get(1);
-
-			if(task.deliveryCity == nodeCity && taskStatus.equals(PICKEDUP)) {
-				nState.get(i).set(1, DELIVERED);
-				cap-= ((Task)nState.get(i).get(0)).weight;
-			}
+	
+	private planeNodeTemp calculateNewStateParameters(ArrayList<Object> currentTaskNode, ArrayList<ArrayList<Object>> newState) {
+		planeNodeTemp child = null;
+		Task currentTaskNodeTask = (Task) currentTaskNode.get(0);
+		double newCost = calculateCost(currentTaskNode, currentTaskNodeTask, currentTaskNode.get(1));
+		int newCapacity = calculateCapacity(capacity, currentTaskNodeTask, currentTaskNode.get(1));
+		if(computeHash(newState, newCost)){
+			child = new planeNodeTemp(vehicle, currentTaskNodeTask.deliveryCity, newState, newCapacity, newCost, this, hashTable, algorithm.name());
+			children.add(child);
 		}
-		return cap;
+		
+		return child;
+	}
+	
+	private double calculateCost(ArrayList<Object> currentTaskNode, Task currentTaskNodeTask, Object taskState) {
+		double newCost = 0;
+		if(taskState.equals(PICKEDUP)) {
+			deliverTask(currentTaskNode, currentTaskNodeTask.deliveryCity);
+			double reward = currentTaskNodeTask.reward;
+			newCost = costs + reward - (nodeCity.distanceTo(currentTaskNodeTask.deliveryCity) * vehicle.costPerKm());
+		} else if (taskState.equals(INITSTATE)){
+			currentTaskNode.set(1, PICKEDUP);
+			newCost = costs - (nodeCity.distanceTo(currentTaskNodeTask.pickupCity) * vehicle.costPerKm());
+		}
+		
+		return newCost;
+	}
+	
+	private int calculateCapacity(int capacity, Task currentTaskNodeTask, Object taskState) {
+		int newCapacity = 0;
+		if(taskState.equals(PICKEDUP)) {
+			newCapacity = capacity + currentTaskNodeTask.weight;
+		} else {
+			newCapacity = capacity - currentTaskNodeTask.weight;
+		}
+		
+		return newCapacity;
+	}
+	
+	private void deliverTask(ArrayList<Object> currentTaskNode, City city) {
+		if( ((Task) currentTaskNode.get(0)).deliveryCity == city && currentTaskNode.get(1).equals(PICKEDUP)) {
+			currentTaskNode.set(1, DELIVERED);
+		}
+	}
+	
+//	private ArrayList<Task> deliverTasks(ArrayList<ArrayList<Object>> nState, City city)
+//	{
+//		ArrayList<Task> deliveredTasks = new ArrayList<Task>();
+//		for(int i = 0; i < nState.size(); i++) {
+//			Task task = (Task) nState.get(i).get(0);
+//			Object taskStatus = nState.get(i).get(1);
+//			if(task.deliveryCity == city && taskStatus.equals(PICKEDUP)) {
+//				nState.get(i).set(1, DELIVERED);
+//				deliveredTasks.add(task);
+//			}
+//		}
+//		
+//		return deliveredTasks;
+//	}
+	
+	private double getReward(ArrayList<Task> deliveredTasks)
+	{
+		double reward = 0;
+		for(int i = 0; i < deliveredTasks.size(); i++) {
+			reward += deliveredTasks.get(i).reward;
+		}
+		
+		return reward;
 	}
 
 	public int numberDeliveredTasks() {
@@ -190,9 +232,11 @@ public class planeNodeTemp {
 		}
 		return j;
 	}
+	
 	public planeNodeTemp getParent() {
 		return parent;
 	}
+	
 	public void deleteNodeAndSubtree(){		//AAA the node must also delete itself (no idea how)
 		if(!children.isEmpty()){
 			for(int i=0; i<children.size(); i++){

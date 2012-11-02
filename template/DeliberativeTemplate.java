@@ -75,7 +75,7 @@ public class DeliberativeTemplate implements DeliberativeBehavior {
 
 		switch (algorithm) {
 		case ASTAR:
-			//System.out.println("ASTAR");
+			System.out.println("ASTAR");
 			Comparator<planeNodeTemp> comparator = new planNodeComparator();
 			PriorityQueue<planeNodeTemp> nodeQueue = new PriorityQueue<planeNodeTemp> (1000, comparator);
 			ArrayList<planeNodeTemp> visitedNodes = new ArrayList<planeNodeTemp>();
@@ -84,17 +84,28 @@ public class DeliberativeTemplate implements DeliberativeBehavior {
 			while(!checkGoalState(currentState)) {
 				ArrayList<planeNodeTemp> childQueue = currentNode.expandNodes();
 				nodeQueue.addAll(childQueue);
-				currentNode = nodeQueue.remove();
+				System.out.println(currentState);
+				try{
+					currentNode = nodeQueue.remove();
+				} catch (Exception e) {
+					break;
+				}
+				
 				visitedNodes.add(currentNode);
 				currentState = currentNode.getState();
 				i++;
 			}
-			//System.out.println("Iteration: "+i);
-			System.out.println("ASTAR: GOAL NODE REACHED!!!!!!!!!!!");
-			goalNode = currentNode;
+			System.out.println("Iteration: "+i);
+			if(nodeQueue.size() > 0) {
+				System.out.println("ASTAR: GOAL NODE REACHED!!!!!!!!!!!");
+				System.out.println("Costs: "+currentNode.getCosts());
+				goalNode = currentNode;
+				// Do backtracking from goal node and create plan
+				plan = backtrackingPlan(goalNode);
+			} else {
+				System.out.println("Node Queue is empty and we haven't found a solution");
+			}
 
-			// Do backtracking from goal node and create plan
-			plan = backtrackingPlan(goalNode);
 			break;
 
 		case BFS:
@@ -103,18 +114,18 @@ public class DeliberativeTemplate implements DeliberativeBehavior {
 			ArrayList<planeNodeTemp> nodeQueueList = new ArrayList<planeNodeTemp>();
 			i = 0;
 			while(!checkGoalState(currentState)) {
-				//System.out.println("--------");
+				System.out.println("--------");
 				ArrayList<planeNodeTemp> Queue = currentNode.expandNodes();
 				nodeQueueList.addAll(Queue);
 				currentNode = nodeQueueList.remove(0);
-				//currentNode.printState();
+				currentNode.printState();
 				currentState = currentNode.getState();
 				i++;
-				//System.out.println("Iteration: "+ i);
+				System.out.println("Iteration: "+ i);
 			}
 			System.out.println("BFS: GOAL NODE REACHED!!!!!!!!!!!");
 			goalNode = currentNode;
-
+			System.out.println("Costs: "+currentNode.getCosts());
 			plan = backtrackingPlan(goalNode);
 			break;
 		default:
@@ -126,11 +137,11 @@ public class DeliberativeTemplate implements DeliberativeBehavior {
 	public void planCancelled(TaskSet _carriedTasks) {
 		if (!_carriedTasks.isEmpty()) {
 			//System.out.println("carrying some tasks");
-			carriedTasks= _carriedTasks;
+			carriedTasks = _carriedTasks;
 		}
 		else{
 			//System.out.println("carrying no tasks");
-			carriedTasks= _carriedTasks;
+			carriedTasks = _carriedTasks;
 		}
 	}
 
@@ -205,9 +216,11 @@ public class DeliberativeTemplate implements DeliberativeBehavior {
 
 					switch((Integer)action) {
 					case PICKEDUP:
+						System.out.println("Picking up");
 						optimalPlan.appendPickup(currentTask);
 						break;
 					case DELIVERED:
+						System.out.println("delivering");
 						optimalPlan.appendDelivery(currentTask);
 						break;
 					default:

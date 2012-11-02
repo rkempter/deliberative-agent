@@ -16,9 +16,9 @@ public class planNodeComparator implements Comparator<planeNodeTemp>{
 	{
 		double xCost = x.getCosts()+getHeuristicCost(x.getState(), x.getCostsPerKm());
 		double yCost = y.getCosts()+getHeuristicCost(y.getState(), y.getCostsPerKm());
-		if(xCost < yCost) {
+		if(xCost > yCost) {
 			return -1;
-		} else if(xCost > yCost) {
+		} else if(xCost < yCost) {
 			return 1;
 		}
 		return 0;
