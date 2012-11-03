@@ -24,6 +24,18 @@ public class planeNode {
 	private static final int PICKEDUP = 1;
 	private static final int DELIVERED = 2;
 
+	/**
+	 * Constructor of a planeNode
+	 * 
+	 * @param _vehicle
+	 * @param _nodeCity
+	 * @param _nodeState
+	 * @param _capacity
+	 * @param _costs
+	 * @param _parent
+	 * @param _hashTable
+	 * @param alg
+	 */
 	public planeNode(Vehicle _vehicle, City _nodeCity, ArrayList<ArrayList<Object>> _nodeState, int _capacity, double _costs, planeNode _parent, ArrayList<ArrayList<Object>> _hashTable, String alg){
 		algorithm= Algorithm.valueOf(alg.toUpperCase());
 		hashTable= _hashTable;
@@ -36,25 +48,7 @@ public class planeNode {
 		children= new ArrayList<planeNode>();
 	}
 
-	public double getCosts() {
-		return costs;
-	}
 	
-	public int getCostsPerKm() {
-		return vehicle.costPerKm();
-	}
-
-	public City getCity() {
-		return nodeCity;
-	}
-
-	public void printState() {
-		System.out.println(nodeState);
-	}
-
-	public ArrayList<ArrayList<Object>> getState() {
-		return nodeState;
-	}
 	
 	/**
 	 * Used for Breath first search: We don't care about the best solution,
@@ -88,6 +82,11 @@ public class planeNode {
 		return shouldAddNode;
 	}
 
+	/**
+	 * Expands the current node
+	 * 
+	 * @return ArrayList<planeNode> with all its children nodes
+	 */
 	public ArrayList<planeNode> expandNodes(){
 		ArrayList<planeNode> childNodes = new ArrayList<planeNode>();
 		ArrayList<Integer> subState = createSubState(nodeState);
@@ -115,6 +114,12 @@ public class planeNode {
 	 * @return subState
 	 */
 
+	/**
+	 * Computes all the possible children states of the current node
+	 * 
+	 * @param currentState
+	 * @return ArrayList<Integer>
+	 */
 	private ArrayList<Integer> createSubState(ArrayList<ArrayList<Object>> currentState) {
 		ArrayList<Integer> subState = new ArrayList<Integer>();
 
@@ -128,6 +133,12 @@ public class planeNode {
 		return subState;
 	}
 
+	/**
+	 * Creates a new state
+	 * 
+	 * @param selectedTaskIndex
+	 * @return
+	 */
 	private planeNode createNewState(Integer selectedTaskIndex) {
 		ArrayList<ArrayList<Object>> newState= new ArrayList<ArrayList<Object>>();
 		planeNode child = null;
@@ -147,6 +158,13 @@ public class planeNode {
 		
 		return child;
 	}
+	/**
+	 * Generates a new child based on the newState and the node we modify.
+	 * 
+	 * @param currentTaskNode
+	 * @param newState
+	 * @return planNode
+	 */
 	
 	private planeNode calculateNewStateParameters(ArrayList<Object> currentTaskNode, ArrayList<ArrayList<Object>> newState) {
 		planeNode child = null;
@@ -161,6 +179,15 @@ public class planeNode {
 		return child;
 	}
 	
+	/**
+	 * Computes the costs for reaching a child node. This depends if we deliver a task or pick one up.
+	 * Delivering a task returns a rewards.
+	 * 
+	 * @param currentTaskNode
+	 * @param currentTaskNodeTask
+	 * @param taskState
+	 * @return
+	 */
 	private double calculateCost(ArrayList<Object> currentTaskNode, Task currentTaskNodeTask, Object taskState) {
 		double newCost = 0;
 		if(taskState.equals(PICKEDUP)) {
@@ -175,6 +202,15 @@ public class planeNode {
 		return newCost;
 	}
 	
+	/**
+	 * Computes the current capacity.
+	 * Delivering a task gives more capacity, picking up a task reduces the capacity.
+	 * 
+	 * @param capacity
+	 * @param currentTaskNodeTask
+	 * @param taskState
+	 * @return int
+	 */
 	private int calculateCapacity(int capacity, Task currentTaskNodeTask, Object taskState) {
 		int newCapacity = 0;
 		if(taskState.equals(PICKEDUP)) {
@@ -186,12 +222,24 @@ public class planeNode {
 		return newCapacity;
 	}
 	
+	/**
+	 * Sets the current task as delivered
+	 * 
+	 * @param currentTaskNode
+	 * @param city
+	 */
 	private void deliverTask(ArrayList<Object> currentTaskNode, City city) {
 		if( ((Task) currentTaskNode.get(0)).deliveryCity == city && currentTaskNode.get(1).equals(PICKEDUP)) {
 			currentTaskNode.set(1, DELIVERED);
 		}
 	}
 
+	/**
+	 * Computes the number of delivered tasks at
+	 * the current node.
+	 * 
+	 * @return int
+	 */
 	public int numberDeliveredTasks() {
 		int size = nodeState.size();
 		int j = 0;
@@ -208,15 +256,40 @@ public class planeNode {
 		return j;
 	}
 	
-	public planeNode getParent() {
-		return parent;
-	}
 	
-	public void deleteNodeAndSubtree(){		//AAA the node must also delete itself (no idea how)
+	public void deleteNodeAndSubtree(){
 		if(!children.isEmpty()){
 			for(int i=0; i<children.size(); i++){
 				children.get(i).deleteNodeAndSubtree();
 			}
 		}
+	}
+	
+	/**
+	 * Getter and Setter methods
+	 */
+	
+	public planeNode getParent() {
+		return parent;
+	}
+	
+	public double getCosts() {
+		return costs;
+	}
+	
+	public int getCostsPerKm() {
+		return vehicle.costPerKm();
+	}
+
+	public City getCity() {
+		return nodeCity;
+	}
+
+	public void printState() {
+		System.out.println(nodeState);
+	}
+
+	public ArrayList<ArrayList<Object>> getState() {
+		return nodeState;
 	}
 }
