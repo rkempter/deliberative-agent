@@ -56,8 +56,8 @@ public class DeliberativeTemplate implements DeliberativeBehavior {
 	@Override
 	public Plan plan(Vehicle vehicle, TaskSet tasks) {
 		Plan plan = null;
-		planeNodeTemp goalNode;
-		planeNodeTemp currentNode;
+		planeNode goalNode;
+		planeNode currentNode;
 
 		System.out.println( vehicle.name() +" is computing plan");
 		//System.out.println("tasks left: "+ tasks);
@@ -68,7 +68,7 @@ public class DeliberativeTemplate implements DeliberativeBehavior {
 		System.out.println(goalState);
 
 
-		planeNodeTemp startNode = createStartNode(vehicle, startState, tasks);
+		planeNode startNode = createStartNode(vehicle, startState, tasks);
 		System.out.println("");
 		ArrayList<ArrayList<Object>> currentState = startState;
 		// Compute the plan with the selected algorithm.
@@ -76,13 +76,13 @@ public class DeliberativeTemplate implements DeliberativeBehavior {
 		switch (algorithm) {
 		case ASTAR:
 			System.out.println("ASTAR");
-			Comparator<planeNodeTemp> comparator = new planNodeComparator();
-			PriorityQueue<planeNodeTemp> nodeQueue = new PriorityQueue<planeNodeTemp> (1000, comparator);
-			ArrayList<planeNodeTemp> visitedNodes = new ArrayList<planeNodeTemp>();
+			Comparator<planeNode> comparator = new planNodeComparator();
+			PriorityQueue<planeNode> nodeQueue = new PriorityQueue<planeNode> (1000, comparator);
+			ArrayList<planeNode> visitedNodes = new ArrayList<planeNode>();
 			currentNode = startNode;
 			int i = 0;
 			while(!checkGoalState(currentState)) {
-				ArrayList<planeNodeTemp> childQueue = currentNode.expandNodes();
+				ArrayList<planeNode> childQueue = currentNode.expandNodes();
 				nodeQueue.addAll(childQueue);
 				System.out.println(currentState);
 				try{
@@ -111,11 +111,11 @@ public class DeliberativeTemplate implements DeliberativeBehavior {
 		case BFS:
 			System.out.println("BFS");
 			currentNode = startNode;
-			ArrayList<planeNodeTemp> nodeQueueList = new ArrayList<planeNodeTemp>();
+			ArrayList<planeNode> nodeQueueList = new ArrayList<planeNode>();
 			i = 0;
 			while(!checkGoalState(currentState)) {
 				System.out.println("--------");
-				ArrayList<planeNodeTemp> Queue = currentNode.expandNodes();
+				ArrayList<planeNode> Queue = currentNode.expandNodes();
 				nodeQueueList.addAll(Queue);
 				currentNode = nodeQueueList.remove(0);
 				currentNode.printState();
@@ -186,16 +186,16 @@ public class DeliberativeTemplate implements DeliberativeBehavior {
 	}
 
 
-	private planeNodeTemp createStartNode(Vehicle vehicle, ArrayList<ArrayList<Object>> startState, TaskSet tasks) {
+	private planeNode createStartNode(Vehicle vehicle, ArrayList<ArrayList<Object>> startState, TaskSet tasks) {
 		ArrayList<ArrayList<Object>> stateHash= new ArrayList<ArrayList<Object>>();
 		System.out.println(algorithm.name());
-		planeNodeTemp startNode = new planeNodeTemp(vehicle, vehicle.getCurrentCity(), startState, vehicle.capacity(), 0, null, stateHash, "BFS");
+		planeNode startNode = new planeNode(vehicle, vehicle.getCurrentCity(), startState, vehicle.capacity(), 0, null, stateHash, "BFS");
 		return startNode;
 	}
 
-	private Plan backtrackingPlan(planeNodeTemp goalNode) {
-		planeNodeTemp currentNode = goalNode;
-		ArrayList<planeNodeTemp> path = new ArrayList<planeNodeTemp>();
+	private Plan backtrackingPlan(planeNode goalNode) {
+		planeNode currentNode = goalNode;
+		ArrayList<planeNode> path = new ArrayList<planeNode>();
 
 		while(currentNode != null) {
 			path.add(currentNode);

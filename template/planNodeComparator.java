@@ -6,13 +6,13 @@ import java.util.Iterator;
 
 import logist.task.Task;
 
-public class planNodeComparator implements Comparator<planeNodeTemp>{
+public class planNodeComparator implements Comparator<planeNode>{
 
 	private static final int INITSTATE = 0;
 	private static final int PICKEDUP = 1;
 	private static final int DELIVERED = 2;
 	
-	public int compare(planeNodeTemp x, planeNodeTemp y)
+	public int compare(planeNode x, planeNode y)
 	{
 		double xCost = x.getCosts()+getHeuristicCost(x.getState(), x.getCostsPerKm());
 		double yCost = y.getCosts()+getHeuristicCost(y.getState(), y.getCostsPerKm());
