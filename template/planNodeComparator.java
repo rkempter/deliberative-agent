@@ -51,16 +51,12 @@ public class planNodeComparator implements Comparator<planeNode>{
 			states.get(i).add(taskList.get(i).get(1));			
 		}
 		
-		
 		int minAt = 0;
 		double distance = 0;
 		actionStates minStatus = null;
 		Task bestTask = null;
-		int k = 0;
 		
 		while(!DeliberativeTemplate.checkGoalState(states)) {
-			//System.out.println(states);
-			k++;
 			double min = 100000;
 			for(int i = 0; i < states.size(); i++) {
 				if(states.get(i).get(1).equals(DELIVERED)) {
@@ -88,6 +84,7 @@ public class planNodeComparator implements Comparator<planeNode>{
 				}
 			}
 			
+			// Adjust the parameters depending on the state transition
 			switch(minStatus) {
 			case INITSTATE:
 				states.get(minAt).set(1, PICKEDUP);
