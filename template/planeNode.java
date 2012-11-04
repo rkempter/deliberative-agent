@@ -210,9 +210,9 @@ public class planeNode {
 	private int calculateCapacity(int capacity, Task currentTaskNodeTask, Object taskState) {
 		int newCapacity = 0;
 		if(taskState.equals(PICKEDUP)) {
-			newCapacity = capacity + currentTaskNodeTask.weight;
-		} else {
 			newCapacity = capacity - currentTaskNodeTask.weight;
+		} else {
+			newCapacity = capacity + currentTaskNodeTask.weight;
 		}
 		return newCapacity;
 	}

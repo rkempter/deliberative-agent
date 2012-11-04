@@ -79,10 +79,11 @@ public class DeliberativeTemplate implements DeliberativeBehavior {
 			while(!checkGoalState(currentState)) {
 				ArrayList<planeNode> childQueue = currentNode.expandNodes();
 				nodeQueue.addAll(childQueue);
-				System.out.println("*****"+ nodeQueue.size());
 				try{
 					currentNode = nodeQueue.remove();
 					System.out.println(currentNode.getState());
+					System.out.println(currentNode.getCity());
+					System.out.println(currentNode.getCapacity());
 					System.out.println("Estimated total cost: "+currentNode.getCosts()+planNodeComparator.getHeuristicCost(currentNode.getState(), vehicle.costPerKm(), currentNode.getCapacity(), currentNode.getCity()));
 				} catch (Exception e) {
 					break;
