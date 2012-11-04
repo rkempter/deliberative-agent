@@ -42,7 +42,6 @@ public class DeliberativeTemplate implements DeliberativeBehavior {
 	/* the planning class */
 	Algorithm algorithm;
 
-	@Override
 	public void setup(Topology topology, TaskDistribution td, Agent agent) {
 		this.topology = topology;
 		this.td = td;
@@ -53,7 +52,6 @@ public class DeliberativeTemplate implements DeliberativeBehavior {
 		algorithm = Algorithm.valueOf(algorithmName.toUpperCase());
 	}
 
-	@Override
 	public Plan plan(Vehicle vehicle, TaskSet tasks) {
 		Plan plan = null;
 		planeNode goalNode;
@@ -62,13 +60,11 @@ public class DeliberativeTemplate implements DeliberativeBehavior {
 		System.out.println( vehicle.name() +" is computing plan");
 
 		generateStartGoalNode(tasks);
-		carriedTasks= null;
+		carriedTasks = null;
 		System.out.println(startState);
 		System.out.println(goalState);
 
-
 		planeNode startNode = createStartNode(vehicle, startState, tasks);
-		System.out.println("");
 		ArrayList<ArrayList<Object>> currentState = startState;
 		// Compute the plan with the selected algorithm.
 
@@ -85,8 +81,8 @@ public class DeliberativeTemplate implements DeliberativeBehavior {
 				nodeQueue.addAll(childQueue);
 				try{
 					currentNode = nodeQueue.remove();
-					System.out.println("****"+ currentNode.getCosts());
-
+					System.out.println(currentNode.getState());
+					System.out.println("Estimated total cost: "+currentNode.getCosts()+planNodeComparator.getHeuristicCost(currentNode.getState(), vehicle.costPerKm(), currentNode.getCapacity(), currentNode.getCity()));
 				} catch (Exception e) {
 					break;
 				}
@@ -96,10 +92,11 @@ public class DeliberativeTemplate implements DeliberativeBehavior {
 				i++;
 			}
 			System.out.println("Iteration: "+i);
+			
 			if(nodeQueue.size() > 0) {
 				System.out.println("ASTAR: GOAL NODE REACHED!");
-				System.out.println("Costs: "+ currentNode.getCosts());
 				goalNode = currentNode;
+				
 				// Do backtracking from goal node and create plan
 				plan = backtrackingPlan(goalNode);
 			} else {
@@ -141,7 +138,7 @@ public class DeliberativeTemplate implements DeliberativeBehavior {
 		}
 	}
 
-	public boolean checkGoalState(ArrayList<ArrayList<Object>> state) {
+	public static boolean checkGoalState(ArrayList<ArrayList<Object>> state) {
 		int stateSize = state.size();
 		for(int i = 0; i < stateSize; i++) {
 			if(!state.get(i).get(1).equals(DELIVERED)) {
@@ -166,7 +163,7 @@ public class DeliberativeTemplate implements DeliberativeBehavior {
 			goalState.get(goalState.size()-1).add(DELIVERED);
 		}
 
-		if(carriedTasks!=null){
+		if(carriedTasks != null){
 			Iterator<Task> c_itr= carriedTasks.iterator();
 			while(c_itr.hasNext()){
 				startState.add(new ArrayList<Object>());
@@ -181,7 +178,6 @@ public class DeliberativeTemplate implements DeliberativeBehavior {
 		}
 	}
 
-
 	private planeNode createStartNode(Vehicle vehicle, ArrayList<ArrayList<Object>> startState, TaskSet tasks) {
 		ArrayList<ArrayList<Object>> stateHash= new ArrayList<ArrayList<Object>>();
 		planeNode startNode = new planeNode(vehicle, vehicle.getCurrentCity(), startState, vehicle.capacity(), 0, null, stateHash, algorithm.name());
@@ -193,10 +189,10 @@ public class DeliberativeTemplate implements DeliberativeBehavior {
 		ArrayList<planeNode> path = new ArrayList<planeNode>();
 
 		while(currentNode != null) {
-			System.out.println(currentNode.getState());
 			path.add(currentNode);
 			currentNode = currentNode.getParent();
 		}
+		
 		Collections.reverse(path);
 		Plan optimalPlan = new Plan(path.get(0).getCity());
 		for(int i = 1; i < path.size() ; i++) {
@@ -206,7 +202,6 @@ public class DeliberativeTemplate implements DeliberativeBehavior {
 			int stateSize = path.get(i).getState().size();
 			for(int j=0; j< stateSize; j++) {
 				if(!path.get(i).getState().get(j).get(1).equals(path.get(i-1).getState().get(j).get(1))) {
-					//System.out.println(path.get(i).getState().get(j).get(0));
 					Object action = path.get(i).getState().get(j).get(1);			// switch pickup or delivery
 					Task currentTask = (Task) path.get(i).getState().get(j).get(0);
 

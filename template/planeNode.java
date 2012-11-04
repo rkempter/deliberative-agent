@@ -65,7 +65,7 @@ public class planeNode {
 		for(int i=0; i< hashTable.size(); i++){
 			if(hashTable.get(i).get(0).equals(hashCode)){
 				present = true;
-				if(algorithm.equals(Algorithm.BFS)){
+				if(algorithm.equals(Algorithm.BFS)) {
 					shouldAddNode = false;
 				}
 			}
@@ -166,10 +166,10 @@ public class planeNode {
 		int newCapacity = calculateCapacity(capacity, currentTaskNodeTask, currentTaskNode.get(1));
 		
 		if(computeHash(newState, newCost)){
-			if(currentTaskNode.get(1).equals(PICKEDUP)){
+			if(currentTaskNode.get(1).equals(PICKEDUP)) {
 				child = new planeNode(vehicle, currentTaskNodeTask.pickupCity, newState, newCapacity, newCost, this, hashTable, algorithm.name());
 			}
-			else{
+			else {
 				child = new planeNode(vehicle, currentTaskNodeTask.deliveryCity, newState, newCapacity, newCost, this, hashTable, algorithm.name());
 			}
 			children.add(child);
@@ -230,37 +230,6 @@ public class planeNode {
 	}
 
 	/**
-	 * Computes the number of delivered tasks at
-	 * the current node.
-	 * 
-	 * @return int
-	 */
-	public int numberDeliveredTasks() {
-		int size = nodeState.size();
-		int j = 0;
-		for(int i = 0; i < size; i++) {
-			Object taskStatus = nodeState.get(i).get(1);
-
-			if(taskStatus.equals(DELIVERED)) {
-				j++;
-			}
-		}
-		if(nodeState.size() == j) {
-			System.out.println("Goal state!");
-		}
-		return j;
-	}
-
-
-	public void deleteNodeAndSubtree(){
-		if(!children.isEmpty()){
-			for(int i=0; i<children.size(); i++){
-				children.get(i).deleteNodeAndSubtree();
-			}
-		}
-	}
-
-	/**
 	 * Getter and Setter methods
 	 */
 
@@ -282,6 +251,10 @@ public class planeNode {
 
 	public void printState() {
 		//System.out.println(nodeState);
+	}
+	
+	public int getCapacity() {
+		return capacity;
 	}
 
 	public ArrayList<ArrayList<Object>> getState() {

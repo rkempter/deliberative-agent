@@ -3,10 +3,14 @@ package template;
 import java.util.ArrayList;
 import java.util.Comparator;
 import logist.task.Task;
+import logist.topology.Topology.City;
 
 public class planNodeComparator implements Comparator<planeNode>{
-
+	
 	private static final int INITSTATE = 0;
+	private static final int PICKEDUP = 1;
+	private static final int DELIVERED = 2;
+
 	/**
 	 * Compares two nodes and checks which one has the higher reward.
 	 * 
@@ -16,8 +20,8 @@ public class planNodeComparator implements Comparator<planeNode>{
 	 */
 	public int compare(planeNode x, planeNode y)
 	{
-		double xCost = x.getCosts()+ getHeuristicCost(x.getState(), x.getCostsPerKm());
-		double yCost = y.getCosts()+ getHeuristicCost(y.getState(), y.getCostsPerKm());
+		double xCost = x.getCosts() + getHeuristicCost(x.getState(), x.getCostsPerKm(), x.getCapacity(), x.getCity());
+		double yCost = y.getCosts() + getHeuristicCost(y.getState(), y.getCostsPerKm(), y.getCapacity(), y.getCity());
 		if(xCost < yCost) {
 			return -1;
 		} else if(xCost > yCost) {
@@ -36,16 +40,72 @@ public class planNodeComparator implements Comparator<planeNode>{
 	 * @return double
 	 */
 	
-	public double getHeuristicCost(ArrayList<ArrayList<Object>> taskList, int costPerKm) {
+	public static double getHeuristicCost(ArrayList<ArrayList<Object>> taskList, int costPerKm, int capacity, City currentCity) {
 		double heuristicCost = 0;
 		
-		for(int i = 0; i < taskList.size(); i++) {
-			Task currentTask = (Task) taskList.get(i).get(0);
-			Object taskStatus = taskList.get(i).get(1);
-			
-			if(taskStatus.equals(INITSTATE)) {
-				heuristicCost += currentTask.pathLength() * costPerKm;
+		ArrayList<ArrayList<Object>> states = new ArrayList<ArrayList<Object>>();
+		
+		for(int i=0; i < taskList.size(); i++){
+			states.add(new ArrayList<Object>());
+			states.get(i).add(taskList.get(i).get(0));
+			states.get(i).add(taskList.get(i).get(1));			
+		}
+		
+		
+		int minAt = 0;
+		double distance = 0;
+		actionStates minStatus = null;
+		Task bestTask = null;
+		int k = 0;
+		
+		while(!DeliberativeTemplate.checkGoalState(states)) {
+			//System.out.println(states);
+			k++;
+			double min = 100000;
+			for(int i = 0; i < states.size(); i++) {
+				if(states.get(i).get(1).equals(DELIVERED)) {
+					continue;
+				}
+				
+				Task currentTask = (Task) states.get(i).get(0);
+				Object currentTaskStatus = states.get(i).get(1);
+				int currentTaskWeight = currentTask.weight;
+				
+				if(currentTaskStatus.equals(INITSTATE) && currentTaskWeight < capacity) {
+					distance = (double) currentCity.distanceTo(currentTask.pickupCity);
+					if(distance < min) {
+						min = distance;
+						minAt = i;
+						minStatus = actionStates.INITSTATE;
+					}
+				} else if(currentTaskStatus.equals(PICKEDUP)) {
+					distance = (double) currentCity.distanceTo(currentTask.deliveryCity);
+					if(distance < min) {
+						min = distance;
+						minAt = i;
+						minStatus = actionStates.PICKEDUP;
+					}
+				}
 			}
+			
+			switch(minStatus) {
+			case INITSTATE:
+				states.get(minAt).set(1, PICKEDUP);
+				bestTask = (Task) states.get(minAt).get(0);
+				currentCity = bestTask.pickupCity;
+				capacity -= bestTask.weight;
+				break;
+			case PICKEDUP:
+				states.get(minAt).set(1, DELIVERED);
+				bestTask = (Task) states.get(minAt).get(0);
+				currentCity = bestTask.deliveryCity;
+				capacity += bestTask.weight;
+				break;
+			default:
+				break;
+			}
+			
+			heuristicCost += distance * costPerKm;
 		}
 		
 		return heuristicCost;
