@@ -47,8 +47,6 @@ public class planeNode {
 		nodeCity = _nodeCity;
 		children= new ArrayList<planeNode>();
 	}
-
-	
 	
 	/**
 	 * Used for Breath first search: We don't care about the best solution,
@@ -87,13 +85,10 @@ public class planeNode {
 	 * 
 	 * @return ArrayList<planeNode> with all its children nodes
 	 */
-	public ArrayList<planeNode> expandNodes(){
+	public ArrayList<planeNode> expandNodes() {
 		ArrayList<planeNode> childNodes = new ArrayList<planeNode>();
 		ArrayList<Integer> subState = createSubState(nodeState);
-//		System.out.println("------ new expansion ------");
-//		System.out.println("actual node: "+ nodeCity);
-//		System.out.println("Cost so far "+ costs);
-
+		
 		for (int i=0; i< subState.size(); i++){
 			planeNode newState = createNewState(subState.get(i));
 			if(newState != null){
@@ -193,7 +188,7 @@ public class planeNode {
 		if(taskState.equals(PICKEDUP)) {
 			deliverTask(currentTaskNode, currentTaskNodeTask.deliveryCity);
 			double reward = currentTaskNodeTask.reward;
-			newCost = costs + reward - (nodeCity.distanceTo(currentTaskNodeTask.deliveryCity) * vehicle.costPerKm());
+			newCost = costs - (nodeCity.distanceTo(currentTaskNodeTask.deliveryCity) * vehicle.costPerKm());
 		} else if (taskState.equals(INITSTATE)){
 			currentTaskNode.set(1, PICKEDUP);
 			newCost = costs - (nodeCity.distanceTo(currentTaskNodeTask.pickupCity) * vehicle.costPerKm());
@@ -286,7 +281,7 @@ public class planeNode {
 	}
 
 	public void printState() {
-		System.out.println(nodeState);
+		//System.out.println(nodeState);
 	}
 
 	public ArrayList<ArrayList<Object>> getState() {

@@ -60,7 +60,6 @@ public class DeliberativeTemplate implements DeliberativeBehavior {
 		planeNode currentNode;
 
 		System.out.println( vehicle.name() +" is computing plan");
-		//System.out.println("tasks left: "+ tasks);
 
 		generateStartGoalNode(tasks);
 		carriedTasks= null;
@@ -84,7 +83,6 @@ public class DeliberativeTemplate implements DeliberativeBehavior {
 			while(!checkGoalState(currentState)) {
 				ArrayList<planeNode> childQueue = currentNode.expandNodes();
 				nodeQueue.addAll(childQueue);
-				System.out.println(currentState);
 				try{
 					currentNode = nodeQueue.remove();
 				} catch (Exception e) {
@@ -97,7 +95,7 @@ public class DeliberativeTemplate implements DeliberativeBehavior {
 			}
 			System.out.println("Iteration: "+i);
 			if(nodeQueue.size() > 0) {
-				System.out.println("ASTAR: GOAL NODE REACHED!!!!!!!!!!!");
+				System.out.println("ASTAR: GOAL NODE REACHED!");
 				System.out.println("Costs: "+currentNode.getCosts());
 				goalNode = currentNode;
 				// Do backtracking from goal node and create plan
@@ -114,18 +112,16 @@ public class DeliberativeTemplate implements DeliberativeBehavior {
 			ArrayList<planeNode> nodeQueueList = new ArrayList<planeNode>();
 			i = 0;
 			while(!checkGoalState(currentState)) {
-				System.out.println("--------");
 				ArrayList<planeNode> Queue = currentNode.expandNodes();
 				nodeQueueList.addAll(Queue);
 				currentNode = nodeQueueList.remove(0);
 				currentNode.printState();
 				currentState = currentNode.getState();
-				i++;
-				System.out.println("Iteration: "+ i);
+				i++;	
 			}
-			System.out.println("BFS: GOAL NODE REACHED!!!!!!!!!!!");
+			System.out.println("Iteration: "+ i);
+			System.out.println("BFS: GOAL NODE REACHED!");
 			goalNode = currentNode;
-			System.out.println("Costs: "+currentNode.getCosts());
 			plan = backtrackingPlan(goalNode);
 			break;
 		default:
@@ -133,14 +129,12 @@ public class DeliberativeTemplate implements DeliberativeBehavior {
 		}		
 		return plan;
 	}
-	@Override
+
 	public void planCancelled(TaskSet _carriedTasks) {
 		if (!_carriedTasks.isEmpty()) {
-			//System.out.println("carrying some tasks");
 			carriedTasks = _carriedTasks;
 		}
 		else{
-			//System.out.println("carrying no tasks");
 			carriedTasks = _carriedTasks;
 		}
 	}
@@ -216,11 +210,9 @@ public class DeliberativeTemplate implements DeliberativeBehavior {
 
 					switch((Integer)action) {
 					case PICKEDUP:
-						System.out.println("Picking up");
 						optimalPlan.appendPickup(currentTask);
 						break;
 					case DELIVERED:
-						System.out.println("delivering");
 						optimalPlan.appendDelivery(currentTask);
 						break;
 					default:
