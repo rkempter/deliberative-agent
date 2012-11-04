@@ -192,6 +192,7 @@ public class DeliberativeTemplate implements DeliberativeBehavior {
 		ArrayList<planeNode> path = new ArrayList<planeNode>();
 
 		while(currentNode != null) {
+			System.out.println(currentNode.getState());
 			path.add(currentNode);
 			currentNode = currentNode.getParent();
 		}
