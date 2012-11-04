@@ -85,6 +85,8 @@ public class DeliberativeTemplate implements DeliberativeBehavior {
 				nodeQueue.addAll(childQueue);
 				try{
 					currentNode = nodeQueue.remove();
+					System.out.println("****"+ currentNode.getCosts());
+
 				} catch (Exception e) {
 					break;
 				}
@@ -96,7 +98,7 @@ public class DeliberativeTemplate implements DeliberativeBehavior {
 			System.out.println("Iteration: "+i);
 			if(nodeQueue.size() > 0) {
 				System.out.println("ASTAR: GOAL NODE REACHED!");
-				System.out.println("Costs: "+currentNode.getCosts());
+				System.out.println("Costs: "+ currentNode.getCosts());
 				goalNode = currentNode;
 				// Do backtracking from goal node and create plan
 				plan = backtrackingPlan(goalNode);
@@ -125,7 +127,7 @@ public class DeliberativeTemplate implements DeliberativeBehavior {
 			plan = backtrackingPlan(goalNode);
 			break;
 		default:
-			throw new AssertionError("Should not happen.");
+			throw new AssertionError("Should not happen!!!");
 		}		
 		return plan;
 	}
@@ -182,8 +184,7 @@ public class DeliberativeTemplate implements DeliberativeBehavior {
 
 	private planeNode createStartNode(Vehicle vehicle, ArrayList<ArrayList<Object>> startState, TaskSet tasks) {
 		ArrayList<ArrayList<Object>> stateHash= new ArrayList<ArrayList<Object>>();
-		System.out.println(algorithm.name());
-		planeNode startNode = new planeNode(vehicle, vehicle.getCurrentCity(), startState, vehicle.capacity(), 0, null, stateHash, "BFS");
+		planeNode startNode = new planeNode(vehicle, vehicle.getCurrentCity(), startState, vehicle.capacity(), 0, null, stateHash, algorithm.name());
 		return startNode;
 	}
 

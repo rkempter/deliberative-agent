@@ -2,17 +2,11 @@ package template;
 
 import java.util.ArrayList;
 import java.util.Comparator;
-import java.util.Iterator;
-
 import logist.task.Task;
 
 public class planNodeComparator implements Comparator<planeNode>{
 
 	private static final int INITSTATE = 0;
-	private static final int PICKEDUP = 1;
-	private static final int DELIVERED = 2;
-	
-	
 	/**
 	 * Compares two nodes and checks which one has the higher reward.
 	 * 
@@ -22,11 +16,11 @@ public class planNodeComparator implements Comparator<planeNode>{
 	 */
 	public int compare(planeNode x, planeNode y)
 	{
-		double xCost = x.getCosts()+getHeuristicCost(x.getState(), x.getCostsPerKm());
-		double yCost = y.getCosts()+getHeuristicCost(y.getState(), y.getCostsPerKm());
-		if(xCost > yCost) {
+		double xCost = x.getCosts()+ getHeuristicCost(x.getState(), x.getCostsPerKm());
+		double yCost = y.getCosts()+ getHeuristicCost(y.getState(), y.getCostsPerKm());
+		if(xCost < yCost) {
 			return -1;
-		} else if(xCost < yCost) {
+		} else if(xCost > yCost) {
 			return 1;
 		}
 		return 0;

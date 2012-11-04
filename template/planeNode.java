@@ -47,7 +47,7 @@ public class planeNode {
 		nodeCity = _nodeCity;
 		children= new ArrayList<planeNode>();
 	}
-	
+
 	/**
 	 * Used for Breath first search: We don't care about the best solution,
 	 * Therefore, if we arrive at a state, where the same tasks are delivered and picked up,
@@ -69,14 +69,13 @@ public class planeNode {
 					shouldAddNode = false;
 				}
 			}
-		}
-		
+		}	
 		if(present == false) {
 			hashTable.add(new ArrayList<Object>());
 			hashTable.get(hashTable.size()-1).add(state.hashCode());
 			hashTable.get(hashTable.size()-1).add(this);
 		}
-		
+
 		return shouldAddNode;
 	}
 
@@ -88,14 +87,14 @@ public class planeNode {
 	public ArrayList<planeNode> expandNodes() {
 		ArrayList<planeNode> childNodes = new ArrayList<planeNode>();
 		ArrayList<Integer> subState = createSubState(nodeState);
-		
+
 		for (int i=0; i< subState.size(); i++){
 			planeNode newState = createNewState(subState.get(i));
 			if(newState != null){
 				childNodes.add(newState);
 			}
 		}
-		
+
 		return childNodes;
 	}
 
@@ -124,7 +123,7 @@ public class planeNode {
 				subState.add(pos);
 			}
 		}
-		
+
 		return subState;
 	}
 
@@ -138,19 +137,18 @@ public class planeNode {
 		ArrayList<ArrayList<Object>> newState= new ArrayList<ArrayList<Object>>();
 		planeNode child = null;
 		ArrayList<Object> currentTaskNode = nodeState.get(selectedTaskIndex);
-		
+
 		for(int i=0; i<nodeState.size(); i++){
 			newState.add(new ArrayList<Object>());
 			newState.get(i).add(nodeState.get(i).get(0));
 			newState.get(i).add(nodeState.get(i).get(1));			
 		}
 
-		if(currentTaskNode.get(1).equals(PICKEDUP)) { //selected task is PICKEDUP
+		if(currentTaskNode.get(1).equals(PICKEDUP)) {	 //selected task is PICKEDUP
 			child = calculateNewStateParameters(newState.get(selectedTaskIndex), newState);
 		} else if(capacity >= ((Task) currentTaskNode.get(0)).weight) {
 			child = calculateNewStateParameters(newState.get(selectedTaskIndex), newState);
 		}
-		
 		return child;
 	}
 	/**
@@ -160,20 +158,25 @@ public class planeNode {
 	 * @param newState
 	 * @return planNode
 	 */
-	
+
 	private planeNode calculateNewStateParameters(ArrayList<Object> currentTaskNode, ArrayList<ArrayList<Object>> newState) {
 		planeNode child = null;
 		Task currentTaskNodeTask = (Task) currentTaskNode.get(0);
 		double newCost = calculateCost(currentTaskNode, currentTaskNodeTask, currentTaskNode.get(1));
 		int newCapacity = calculateCapacity(capacity, currentTaskNodeTask, currentTaskNode.get(1));
+		
 		if(computeHash(newState, newCost)){
-			child = new planeNode(vehicle, currentTaskNodeTask.deliveryCity, newState, newCapacity, newCost, this, hashTable, algorithm.name());
+			if(currentTaskNode.get(1).equals(PICKEDUP)){
+				child = new planeNode(vehicle, currentTaskNodeTask.pickupCity, newState, newCapacity, newCost, this, hashTable, algorithm.name());
+			}
+			else{
+				child = new planeNode(vehicle, currentTaskNodeTask.deliveryCity, newState, newCapacity, newCost, this, hashTable, algorithm.name());
+			}
 			children.add(child);
 		}
-		
 		return child;
 	}
-	
+
 	/**
 	 * Computes the costs for reaching a child node. This depends if we deliver a task or pick one up.
 	 * Delivering a task returns a rewards.
@@ -187,16 +190,14 @@ public class planeNode {
 		double newCost = 0;
 		if(taskState.equals(PICKEDUP)) {
 			deliverTask(currentTaskNode, currentTaskNodeTask.deliveryCity);
-			double reward = currentTaskNodeTask.reward;
-			newCost = costs - (nodeCity.distanceTo(currentTaskNodeTask.deliveryCity) * vehicle.costPerKm());
+			newCost = costs + (nodeCity.distanceTo(currentTaskNodeTask.deliveryCity) * vehicle.costPerKm());
 		} else if (taskState.equals(INITSTATE)){
 			currentTaskNode.set(1, PICKEDUP);
-			newCost = costs - (nodeCity.distanceTo(currentTaskNodeTask.pickupCity) * vehicle.costPerKm());
-		}
-		
+			newCost = costs + (nodeCity.distanceTo(currentTaskNodeTask.pickupCity) * vehicle.costPerKm());
+		}	
 		return newCost;
 	}
-	
+
 	/**
 	 * Computes the current capacity.
 	 * Delivering a task gives more capacity, picking up a task reduces the capacity.
@@ -213,10 +214,9 @@ public class planeNode {
 		} else {
 			newCapacity = capacity - currentTaskNodeTask.weight;
 		}
-		
 		return newCapacity;
 	}
-	
+
 	/**
 	 * Sets the current task as delivered
 	 * 
@@ -250,8 +250,8 @@ public class planeNode {
 		}
 		return j;
 	}
-	
-	
+
+
 	public void deleteNodeAndSubtree(){
 		if(!children.isEmpty()){
 			for(int i=0; i<children.size(); i++){
@@ -259,19 +259,19 @@ public class planeNode {
 			}
 		}
 	}
-	
+
 	/**
 	 * Getter and Setter methods
 	 */
-	
+
 	public planeNode getParent() {
 		return parent;
 	}
-	
+
 	public double getCosts() {
 		return costs;
 	}
-	
+
 	public int getCostsPerKm() {
 		return vehicle.costPerKm();
 	}
