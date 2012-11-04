@@ -79,6 +79,7 @@ public class DeliberativeTemplate implements DeliberativeBehavior {
 			while(!checkGoalState(currentState)) {
 				ArrayList<planeNode> childQueue = currentNode.expandNodes();
 				nodeQueue.addAll(childQueue);
+				System.out.println("*****"+ nodeQueue.size());
 				try{
 					currentNode = nodeQueue.remove();
 					System.out.println(currentNode.getState());

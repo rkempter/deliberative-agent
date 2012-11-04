@@ -144,7 +144,7 @@ public class planeNode {
 			newState.get(i).add(nodeState.get(i).get(1));			
 		}
 
-		if(currentTaskNode.get(1).equals(PICKEDUP)) {	 //selected task is PICKEDUP
+		if(currentTaskNode.get(1).equals(PICKEDUP)) {		 //selected task is PICKEDUP
 			child = calculateNewStateParameters(newState.get(selectedTaskIndex), newState);
 		} else if(capacity >= ((Task) currentTaskNode.get(0)).weight) {
 			child = calculateNewStateParameters(newState.get(selectedTaskIndex), newState);
