@@ -31,12 +31,15 @@ public class planNodeComparator implements Comparator<planeNode>{
 	}
 	
 	/**
-	 * Heuristic function that computes an cost estimation until
-	 * reaching the goal state. The heuristic function is based on
-	 * the distance from pick up to delivery of all remaining tasks.
+	 * Heuristic function that computes a cost estimation until
+	 * reaching the goal state. The heuristic function iterates on the
+	 * remaining states and picks in each step the cheapest state transition until
+	 * the goal state is reached.
 	 * 
 	 * @param taskList
 	 * @param costPerKm
+	 * @param capacity
+	 * @param currentCity
 	 * @return double
 	 */
 	

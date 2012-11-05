@@ -61,8 +61,6 @@ public class DeliberativeTemplate implements DeliberativeBehavior {
 
 		generateStartGoalNode(tasks);
 		carriedTasks = null;
-		System.out.println(startState);
-		System.out.println(goalState);
 
 		planeNode startNode = createStartNode(vehicle, startState, tasks);
 		ArrayList<ArrayList<Object>> currentState = startState;
@@ -81,10 +79,10 @@ public class DeliberativeTemplate implements DeliberativeBehavior {
 				nodeQueue.addAll(childQueue);
 				try{
 					currentNode = nodeQueue.remove();
-					System.out.println(currentNode.getState());
-					System.out.println(currentNode.getCity());
-					System.out.println(currentNode.getCapacity());
-					System.out.println("Estimated total cost: "+currentNode.getCosts()+planNodeComparator.getHeuristicCost(currentNode.getState(), vehicle.costPerKm(), currentNode.getCapacity(), currentNode.getCity()));
+//					System.out.println(currentNode.getState());
+//					System.out.println(currentNode.getCity());
+//					System.out.println(currentNode.getCapacity());
+//					System.out.println("Estimated total cost: "+currentNode.getCosts()+planNodeComparator.getHeuristicCost(currentNode.getState(), vehicle.costPerKm(), currentNode.getCapacity(), currentNode.getCity()));
 				} catch (Exception e) {
 					break;
 				}
